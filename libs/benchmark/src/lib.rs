@@ -8,14 +8,12 @@ pub struct Benchmark {
 }
 
 impl Benchmark {
-    pub fn new() -> Self {
-        Self { test_sets: vec![] }
+    pub fn new(test_sets: Vec<TestSet>) -> Self {
+        Self { test_sets }
     }
 }
 
-struct TestSet {
-    length: usize,
-    rating: usize,
+pub struct TestSet {
     games_moves: Vec<(SequencePosition, i32)>
 }
 
@@ -26,7 +24,7 @@ impl TestSet {
 
         let games_moves = TestSet::load_test(length, rating);
 
-        Self { length, rating, games_moves }
+        Self { games_moves }
     }
 
     fn load_test(length: usize, rating: usize) -> Vec<(SequencePosition, i32)> {
