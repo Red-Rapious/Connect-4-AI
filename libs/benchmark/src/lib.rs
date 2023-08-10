@@ -9,7 +9,6 @@ pub struct Benchmark<S>
 where 
     S: Solver 
 {
-    solver: S,
     test_sets: Vec<TestSet<S>>
 }
 
@@ -17,8 +16,8 @@ impl<S> Benchmark<S>
 where
     S: Solver
 {
-    pub fn new(solver: S, test_sets: Vec<TestSet<S>>) -> Self {
-        Self { solver: solver, test_sets }
+    pub fn new(test_sets: Vec<TestSet<S>>) -> Self {
+        Self { test_sets }
     }
 
     pub fn benchmark(&self) {
