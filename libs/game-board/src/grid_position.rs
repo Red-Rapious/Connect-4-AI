@@ -1,5 +1,6 @@
-use crate::*;
+use crate::{*, sequence_position::SequencePosition};
 
+#[derive(Debug, PartialEq)]
 pub struct GridPosition {
     width: usize,
     height: usize,
@@ -88,6 +89,24 @@ impl Position for GridPosition {
     }
 }
 
+impl From<&SequencePosition> for GridPosition {
+    fn from(sequence_position: &SequencePosition) -> Self {
+        let mut grid_position = GridPosition::new(7, 6);
+        let mut player = Cell::Red;
+
+        for column in sequence_position.sequence() {
+            grid_position.play(column-1, player);
+            player = match player {
+                Cell::Red => Cell::Yellow,
+                Cell::Yellow => Cell::Red,
+                Cell::Empty => panic!()
+            };
+        }
+
+        grid_position
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -151,4 +170,34 @@ mod tests {
     }
 
     // TODO: test `winning`
+
+    mod from_sequence_position {
+        use super::*;
+
+        #[test]
+        fn sequence_empty() {
+            let expected_result = GridPosition::new(7, 6);
+            assert_eq!(
+                GridPosition::from(&SequencePosition::from(&"".to_string())),
+                expected_result
+            )
+        } 
+
+        #[test]
+        fn sequence_line1() {
+            let mut expected_result = GridPosition::new(7, 6);
+            expected_result.play(0, Cell::Red);
+            expected_result.play(2, Cell::Red);
+            expected_result.play(4, Cell::Red);
+            expected_result.play(6, Cell::Red);
+            expected_result.play(1, Cell::Yellow);
+            expected_result.play(3, Cell::Yellow);
+            expected_result.play(5, Cell::Yellow);
+
+            assert_eq!(
+                GridPosition::from(&SequencePosition::from(&"1234567".to_string())),
+                expected_result
+            )
+        } 
+    }
 }

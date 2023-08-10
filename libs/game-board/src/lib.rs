@@ -15,3 +15,7 @@ pub enum Cell {
     Yellow,
     Empty
 }
+
+pub trait Solver{
+    fn solve<P>(position: &P) -> i32 where P: Position ;
+}
