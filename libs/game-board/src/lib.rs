@@ -17,5 +17,5 @@ pub enum Cell {
 }
 
 pub trait Solver{
-    fn solve<P>(position: &P) -> i32 where P: Position ;
+    fn solve<P>(&self, position: &P) -> i32 where P: Position ;
 }
