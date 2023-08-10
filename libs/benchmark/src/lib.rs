@@ -1,7 +1,7 @@
 use std::fs::File;
 use std::io::{BufReader, BufRead};
 
-use lib_game_board::SequencePosition;
+use lib_game_board::sequence_position::SequencePosition;
 
 pub struct Benchmark {
     test_sets: Vec<TestSet>
