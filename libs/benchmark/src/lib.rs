@@ -5,50 +5,39 @@ use lib_game_board::Solver;
 use lib_game_board::sequence_position::SequencePosition;
 use lib_game_board::grid_position::GridPosition;
 
-pub struct Benchmark<S> 
-where 
-    S: Solver 
+pub struct Benchmark 
 {
-    test_sets: Vec<TestSet<S>>
+    test_sets: Vec<TestSet>
 }
 
-impl<S> Benchmark<S>
-where
-    S: Solver
+impl Benchmark
 {
-    pub fn new(test_sets: Vec<TestSet<S>>) -> Self {
+    pub fn new(test_sets: Vec<TestSet>) -> Self {
         Self { test_sets }
     }
 
-    pub fn benchmark(&self) {
+    pub fn benchmark(&self, solver: &impl Solver) {
         let _ = self.test_sets
             .iter()
-            .map(|test| test.test_solver());
+            .map(|test| test.test_solver(solver));
     }
 }
 
-pub struct TestSet<S>
-where 
-    S: Solver
+pub struct TestSet
 {
-    solver: S,
     games_moves: Vec<(SequencePosition, i32)>
 }
 
-impl<S> TestSet<S>
-where 
-    S: Solver
+impl TestSet
 {
-    pub fn new(solver: S, length: usize, rating: usize) -> Self 
-    where 
-        S: Solver 
+    pub fn new(length: usize, rating: usize) -> Self 
     {
         assert!(1 <= rating && rating <= 3);
         assert!(1 <= length && length <= 3);
 
-        let games_moves = TestSet::<S>::load_test(length, rating);
+        let games_moves = TestSet::load_test(length, rating);
 
-        Self { solver, games_moves }
+        Self { games_moves }
     }
 
     fn load_test(length: usize, rating: usize) -> Vec<(SequencePosition, i32)> {
@@ -80,12 +69,11 @@ where
         &self.games_moves
     }
 
-    pub fn test_solver(&self) -> Vec<bool> {
+    pub fn test_solver(&self, solver: &impl Solver) -> Vec<bool> {
         self.games_moves
             .iter()
             .map(|(position, expected_score)| 
-                <S as Solver>
-                    ::solve(&self.solver, &GridPosition::from(position)) 
+                solver.solve(&GridPosition::from(position)) 
                     
                 == *expected_score)
             .collect()
@@ -116,7 +104,7 @@ mod tests {
         #[test]
         #[allow(non_snake_case)]
         fn load_L1_R1() {
-            let test_set = TestSet::new(TestSolver::new(0), 1, 1);
+            let test_set = TestSet::new(1, 1);
             
             assert_eq!(
                 test_set.games_moves()[0],
@@ -130,22 +118,22 @@ mod tests {
 
         #[test]
         fn test_test_solver_0() {
+            let test_set = TestSet::new(1, 1);
             let solver = TestSolver::new(0);
-            let test_set = TestSet::new(solver, 1, 1);
 
             assert_eq!(
-                test_set.test_solver(),
+                test_set.test_solver(&solver),
                 vec![false; test_set.games_moves.len()]
             )
         }
 
         #[test]
         fn test_test_solver_11() {
+            let test_set = TestSet::new(1, 1);
             let solver = TestSolver::new(11);
-            let test_set = TestSet::new(solver, 1, 1);
 
             let correctly_solved: usize = test_set
-                .test_solver()
+                .test_solver(&solver)
                 .iter()
                 .map(|b| if *b { 1 } else { 0 })
                 .sum();
