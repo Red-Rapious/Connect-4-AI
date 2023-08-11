@@ -1,9 +1,13 @@
 use std::fs::File;
 use std::io::{BufReader, BufRead};
+use std::time::Duration;
 
 use lib_game_board::Solver;
 use lib_game_board::sequence_position::SequencePosition;
 use lib_game_board::grid_position::GridPosition;
+use statistics::Statistics;
+
+pub mod statistics;
 
 pub struct Benchmark 
 {
@@ -69,14 +73,17 @@ impl TestSet
         &self.games_moves
     }
 
-    pub fn test_solver(&self, solver: &impl Solver) -> Vec<bool> {
-        self.games_moves
+    pub fn test_solver(&self, solver: &impl Solver) -> Statistics {
+        let results: Vec<bool> = self.games_moves
             .iter()
             .map(|(position, expected_score)| 
                 solver.solve(&GridPosition::from(position)) 
-                    
                 == *expected_score)
-            .collect()
+            .collect();
+
+        let execution_times = vec![Duration::new(0, 0); results.len()];
+
+        Statistics::new(results, execution_times)
     }
 }
 
@@ -122,8 +129,8 @@ mod tests {
             let solver = TestSolver::new(0);
 
             assert_eq!(
-                test_set.test_solver(&solver),
-                vec![false; test_set.games_moves.len()]
+                test_set.test_solver(&solver).results(),
+                &vec![false; test_set.games_moves.len()]
             )
         }
 
@@ -134,6 +141,7 @@ mod tests {
 
             let correctly_solved: usize = test_set
                 .test_solver(&solver)
+                .results()
                 .iter()
                 .map(|b| if *b { 1 } else { 0 })
                 .sum();
