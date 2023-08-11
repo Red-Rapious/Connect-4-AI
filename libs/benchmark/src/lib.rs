@@ -118,7 +118,7 @@ mod tests {
         }
     }
     impl Solver for TestSolver {
-        fn solve(&mut self, _position: &mut impl Position) -> i32{
+        fn solve(&mut self, _position: &impl Position) -> i32{
             self.value
         }
     }

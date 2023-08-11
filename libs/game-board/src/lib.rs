@@ -8,7 +8,7 @@ pub trait Position {
     fn can_play(&self, column: usize) -> bool;
     fn play(&mut self, column: usize, player: Cell);
     fn _winning(&self) -> Cell;
-    fn is_winning_move(&mut self, column: usize, player: Cell) -> bool;
+    fn is_winning_move(&self, column: usize, player: Cell) -> bool;
     fn nb_moves(&self) -> usize;
 }
 
@@ -33,5 +33,5 @@ impl Cell {
 }
 
 pub trait Solver{
-    fn solve(&mut self, position: &mut (impl Position + Clone)) -> i32;
+    fn solve(&mut self, position: &(impl Position + Clone)) -> i32;
 }

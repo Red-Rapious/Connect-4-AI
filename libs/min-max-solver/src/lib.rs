@@ -16,7 +16,7 @@ impl MinMaxSolver {
 
 impl Solver for MinMaxSolver {
     /// Uses negamax to solve the position.
-    fn solve(&mut self, position: &mut (impl lib_game_board::Position + Clone)) -> i32 {
+    fn solve(&mut self, position: &(impl lib_game_board::Position + Clone)) -> i32 {
         self.explored_positions += 1;
         // Draw
         if position.nb_moves() == position.width() * position.height() {

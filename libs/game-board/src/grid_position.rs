@@ -119,7 +119,7 @@ impl Position for GridPosition {
         is_winning_move != Cell::Empty
     }*/
 
-    fn is_winning_move(&mut self, column: usize, player: Cell) -> bool {
+    fn is_winning_move(&self, column: usize, player: Cell) -> bool {
         let mut line = 0;
         while self.grid[line][column] != Cell::Empty {
             line += 1;
