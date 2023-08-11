@@ -4,6 +4,7 @@ use lib_benchmark::{Benchmark, TestSet};
 use lib_game_board::grid_position::GridPosition;
 
 fn main() {
+    benchmark_alpha_beta();
     benchmark_alpha_beta_weak()
 }
 
@@ -16,8 +17,9 @@ fn _benchmark_min_max() {
     println!("Min-Max - Test Set L3 R1:\n\t{}", stats[0]);
 }
 
-fn _benchmark_alpha_beta() {
-    let mut alpha_beta_solver = AlphaBetaSolver::new();
+fn benchmark_alpha_beta() {
+    let move_order: &'static [usize] = &[3, 4, 2, 5, 1, 6, 0];
+    let mut alpha_beta_solver = AlphaBetaSolver::new(move_order);
     let test_sets = vec![
         TestSet::new(3, 1, &"libs/benchmark", None),
         //TestSet::new(2, 1, &"libs/benchmark", None),
@@ -32,7 +34,8 @@ fn _benchmark_alpha_beta() {
 }
 
 fn benchmark_alpha_beta_weak() {
-    let mut alpha_beta_solver = AlphaBetaSolver::new();
+    let move_order: &'static [usize] = &[3, 4, 2, 5, 1, 6, 0];
+    let mut alpha_beta_solver = AlphaBetaSolver::new(move_order);
     let test_sets = vec![
         TestSet::new(3, 1, &"libs/benchmark", None),
         //TestSet::new(2, 1, &"libs/benchmark", None),

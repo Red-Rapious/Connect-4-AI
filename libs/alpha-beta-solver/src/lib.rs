@@ -1,12 +1,13 @@
 use lib_game_board::{Solver, WeakSolver};
 
 pub struct AlphaBetaSolver {
+    move_order: &'static [usize],
     explored_positions: usize
 }
 
 impl AlphaBetaSolver {
-    pub fn new() -> Self {
-        Self { explored_positions: 0 }
+    pub fn new(move_order: &'static [usize]) -> Self {
+        Self { move_order, explored_positions: 0 }
     }
 
     fn solve_range(&mut self, position: &(impl lib_game_board::Position + Clone), mut alpha: i32, mut beta: i32) -> i32 {
@@ -33,10 +34,10 @@ impl AlphaBetaSolver {
         }
 
         // For each possible move
-        for column in 0..position.width() {
-            if position.can_play(column) {
+        for column in self.move_order.iter() {
+            if position.can_play(*column) {
                 let mut position2 = position.clone();
-                position2.play(column);
+                position2.play(*column);
 
                 let score = - self.solve_range(&mut position2, -beta, -alpha);
                 
@@ -90,7 +91,8 @@ mod alpha_beta_tests {
 
     #[test]
     fn grid_correctness() {
-        let mut alpha_beta_solver = AlphaBetaSolver::new();
+        let move_order: &'static [usize] = &[0, 1, 2, 3, 4, 5, 6];
+        let mut alpha_beta_solver = AlphaBetaSolver::new(&move_order);
 
         assert_eq!(alpha_beta_solver.solve(
         &mut GridPosition::from(
@@ -102,7 +104,8 @@ mod alpha_beta_tests {
 
     #[test]
     fn stack_correctness() {
-        let mut alpha_beta_solver = AlphaBetaSolver::new();
+        let move_order: &'static [usize] = &[0, 1, 2, 3, 4, 5, 6];
+        let mut alpha_beta_solver = AlphaBetaSolver::new(&move_order);
 
         assert_eq!(alpha_beta_solver.solve(
         &mut StackPosition::from(
