@@ -20,7 +20,7 @@ impl Benchmark
         Self { test_sets }
     }
 
-    pub fn benchmark(&self, solver: &impl Solver) -> Vec<Statistics> {
+    pub fn benchmark(&self, solver: &mut impl Solver) -> Vec<Statistics> {
         self.test_sets
             .iter()
             .map(|test| test.test_solver(solver))
@@ -39,6 +39,12 @@ impl TestSet
     {
         assert!(1 <= rating && rating <= 3);
         assert!(1 <= length && length <= 3);
+        if length == 3 {
+            assert!(rating == 1);
+        }
+        if length == 2 {
+            assert!(rating != 3);
+        }
 
         let games_moves = TestSet::load_test(length, rating, datasets_path);
         let games_moves = match games_number {
@@ -79,7 +85,7 @@ impl TestSet
         &self.games_moves
     }
 
-    pub fn test_solver(&self, solver: &impl Solver) -> Statistics {
+    pub fn test_solver(&self, solver: &mut impl Solver) -> Statistics {
         let mut execution_times: Vec<Duration> = Vec::with_capacity(self.games_moves.len());
 
         let results: Vec<bool> = self.games_moves
@@ -112,7 +118,7 @@ mod tests {
         }
     }
     impl Solver for TestSolver {
-        fn solve(&self, _position: &mut impl Position) -> i32{
+        fn solve(&mut self, _position: &mut impl Position) -> i32{
             self.value
         }
     }
@@ -138,10 +144,10 @@ mod tests {
         #[test]
         fn test_test_solver_0() {
             let test_set = TestSet::new(1, 1, &".", None);
-            let solver = TestSolver::new(0);
+            let mut solver = TestSolver::new(0);
 
             assert_eq!(
-                test_set.test_solver(&solver).results(),
+                test_set.test_solver(&mut solver).results(),
                 &vec![false; test_set.games_moves.len()]
             )
         }
@@ -149,10 +155,10 @@ mod tests {
         #[test]
         fn test_test_solver_11() {
             let test_set = TestSet::new(1, 1, &".", None);
-            let solver = TestSolver::new(11);
+            let mut solver = TestSolver::new(11);
 
             let correctly_solved: usize = test_set
-                .test_solver(&solver)
+                .test_solver(&mut solver)
                 .results()
                 .iter()
                 .map(|b| if *b { 1 } else { 0 })

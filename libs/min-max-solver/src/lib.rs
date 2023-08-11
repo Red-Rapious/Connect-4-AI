@@ -1,16 +1,23 @@
 use lib_game_board::Solver;
 
-pub struct MinMaxSolver;
+pub struct MinMaxSolver {
+    explored_positions: usize
+}
 
 impl MinMaxSolver {
     pub fn new() -> Self {
-        Self
+        Self { explored_positions: 0 }
+    }
+
+    pub fn explored_positions(&self) -> usize {
+        self.explored_positions
     }
 }
 
 impl Solver for MinMaxSolver {
     /// Uses negamax to solve the position.
-    fn solve(&self, position: &mut (impl lib_game_board::Position + Clone)) -> i32 {
+    fn solve(&mut self, position: &mut (impl lib_game_board::Position + Clone)) -> i32 {
+        self.explored_positions += 1;
         // Draw
         if position.nb_moves() == position.width() * position.height() {
             return 0;
@@ -30,7 +37,7 @@ impl Solver for MinMaxSolver {
         for column in 0..position.width() {
             if position.can_play(column) {
                 let mut position2 = position.clone();
-                position2.play(column, position.player_turn());
+                position2.play(column, position2.player_turn());
 
                 let score = - self.solve(&mut position2);
                 if score > best_score {
@@ -40,5 +47,23 @@ impl Solver for MinMaxSolver {
         }
 
         best_score
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use lib_game_board::{grid_position::GridPosition, sequence_position::SequencePosition};
+
+    #[test]
+    fn minimax_correctness() {
+        let mut minmax_solver = MinMaxSolver::new();
+
+        assert_eq!(minmax_solver.solve(
+        &mut GridPosition::from(
+                    &SequencePosition::from(
+                        &"2252576253462244111563365343671351441".to_string()
+                    ))),
+                -1);
     }
 }
