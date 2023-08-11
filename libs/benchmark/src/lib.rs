@@ -246,5 +246,20 @@ mod benchmark_tests {
                 &vec![false; test_set.games_moves.len()]
             )
         }
+
+        #[test]
+        fn test_test_solver_1() {
+            let test_set = TestSet::new(1, 1, &".", None);
+            let mut solver = TestSolver::new(1);
+
+            let correctly_solved: usize = test_set
+                .test_weak_solver::<GridPosition>(&mut solver)
+                .results()
+                .iter()
+                .map(|b| if *b { 1 } else { 0 })
+                .sum();
+
+            assert_eq!(correctly_solved, 723);
+        }
     }
 }
