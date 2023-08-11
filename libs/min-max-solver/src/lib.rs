@@ -55,16 +55,28 @@ impl Solver for MinMaxSolver {
 }
 
 #[cfg(test)]
-mod tests {
+mod min_max_tests {
     use super::*;
-    use lib_game_board::{grid_position::GridPosition, sequence_position::SequencePosition};
+    use lib_game_board::{grid_position::GridPosition, sequence_position::SequencePosition, stack_position::StackPosition};
 
     #[test]
-    fn minimax_correctness() {
+    fn grid_correctness() {
         let mut minmax_solver = MinMaxSolver::new();
 
         assert_eq!(minmax_solver.solve(
         &mut GridPosition::from(
+                    &SequencePosition::from(
+                        &"2252576253462244111563365343671351441".to_string()
+                    ))),
+                -1);
+    }
+
+    #[test]
+    fn stack_correctness() {
+        let mut minmax_solver = MinMaxSolver::new();
+
+        assert_eq!(minmax_solver.solve(
+        &mut StackPosition::from(
                     &SequencePosition::from(
                         &"2252576253462244111563365343671351441".to_string()
                     ))),

@@ -112,7 +112,7 @@ impl TestSet
 }
 
 #[cfg(test)]
-mod tests {
+mod benchmark_tests {
     use super::*;
     use lib_game_board::Position;
 

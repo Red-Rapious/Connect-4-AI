@@ -59,7 +59,7 @@ impl fmt::Display for Statistics {
 }
 
 #[cfg(test)]
-mod tests {
+mod statistics_tests {
     use super::*;
 
     #[test]
