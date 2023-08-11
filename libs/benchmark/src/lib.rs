@@ -20,10 +20,11 @@ impl Benchmark
         Self { test_sets }
     }
 
-    pub fn benchmark(&self, solver: &impl Solver) {
-        let _ = self.test_sets
+    pub fn benchmark(&self, solver: &impl Solver) -> Vec<Statistics> {
+        self.test_sets
             .iter()
-            .map(|test| test.test_solver(solver));
+            .map(|test| test.test_solver(solver))
+            .collect()
     }
 }
 
@@ -34,18 +35,23 @@ pub struct TestSet
 
 impl TestSet
 {
-    pub fn new(length: usize, rating: usize) -> Self 
+    pub fn new(length: usize, rating: usize, datasets_path: &str, games_number: Option<usize>) -> Self 
     {
         assert!(1 <= rating && rating <= 3);
         assert!(1 <= length && length <= 3);
 
-        let games_moves = TestSet::load_test(length, rating);
+        let games_moves = TestSet::load_test(length, rating, datasets_path);
+        let games_moves = match games_number {
+            None => games_moves,
+            Some(n) => games_moves.into_iter().take(n).collect()
+        };
 
         Self { games_moves }
     }
 
-    fn load_test(length: usize, rating: usize) -> Vec<(SequencePosition, i32)> {
-        let file_path = format!("./datasets/Test_L{}_R{}", length, rating);
+    fn load_test(length: usize, rating: usize, datasets_path: &str) -> Vec<(SequencePosition, i32)> {
+        //let file_path = format!("./datasets/Test_L{}_R{}", length, rating);
+        let file_path = format!("{}/datasets/Test_L{}_R{}", datasets_path, length, rating);
         let file = File::open(&file_path).expect(format!("Unable to read file: {}", file_path).as_str());
         let reader = BufReader::new(file);
         let mut games_moves = Vec::with_capacity(1_000);
@@ -117,7 +123,7 @@ mod tests {
         #[test]
         #[allow(non_snake_case)]
         fn load_L1_R1() {
-            let test_set = TestSet::new(1, 1);
+            let test_set = TestSet::new(1, 1, &".", None);
             
             assert_eq!(
                 test_set.games_moves()[0],
@@ -131,7 +137,7 @@ mod tests {
 
         #[test]
         fn test_test_solver_0() {
-            let test_set = TestSet::new(1, 1);
+            let test_set = TestSet::new(1, 1, &".", None);
             let solver = TestSolver::new(0);
 
             assert_eq!(
@@ -142,7 +148,7 @@ mod tests {
 
         #[test]
         fn test_test_solver_11() {
-            let test_set = TestSet::new(1, 1);
+            let test_set = TestSet::new(1, 1, &".", None);
             let solver = TestSolver::new(11);
 
             let correctly_solved: usize = test_set

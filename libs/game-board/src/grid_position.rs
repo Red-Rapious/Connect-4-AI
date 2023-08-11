@@ -204,6 +204,34 @@ mod tests {
 
     // TODO: test `unplay`
 
+    mod is_winning_move {
+        use super::*;
+
+        #[test]
+        fn test_vertical() {
+            let mut position = GridPosition::new(7, 6);
+            for _ in 0..3 {
+                assert!(!position.is_winning_move(0, Cell::Red));
+                position.play(0, Cell::Red);
+            }
+            assert!(position.is_winning_move(0, Cell::Red));
+            assert_eq!(position.nb_moves, 3);
+            assert_eq!(position.player_turn, Cell::Yellow);
+        }
+
+        #[test]
+        fn test_horizontal() {
+            let mut position = GridPosition::new(7, 6);
+            for column in 0..3 {
+                assert!(!position.is_winning_move(column, Cell::Red));
+                position.play(column, Cell::Red);
+            }
+            assert!(position.is_winning_move(3, Cell::Red));
+            assert_eq!(position.nb_moves, 3);
+            assert_eq!(position.player_turn, Cell::Yellow);
+        }
+    }
+
     mod from_sequence_position {
         use super::*;
 

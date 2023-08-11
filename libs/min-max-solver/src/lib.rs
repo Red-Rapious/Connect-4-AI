@@ -2,6 +2,12 @@ use lib_game_board::Solver;
 
 pub struct MinMaxSolver;
 
+impl MinMaxSolver {
+    pub fn new() -> Self {
+        Self
+    }
+}
+
 impl Solver for MinMaxSolver {
     /// Uses negamax to solve the position.
     fn solve(&self, position: &mut (impl lib_game_board::Position + Clone)) -> i32 {
