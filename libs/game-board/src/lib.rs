@@ -34,4 +34,6 @@ impl Cell {
 
 pub trait Solver{
     fn solve(&mut self, position: &(impl Position + Clone)) -> i32;
+    fn explored_positions(&self) -> usize;
+    fn reset_explored_positions(&mut self);
 }

@@ -87,20 +87,27 @@ impl TestSet
 
     pub fn test_solver(&self, solver: &mut impl Solver) -> Statistics {
         let mut execution_times: Vec<Duration> = Vec::with_capacity(self.games_moves.len());
+        let mut explored_positions_nb: Vec<usize> = Vec::with_capacity(self.games_moves.len());
 
         let results: Vec<bool> = self.games_moves
             .iter()
             .map(|(position, expected_score)| {
+                solver.reset_explored_positions();
+
                 let now = Instant::now();
                 let solved_score = solver.solve(&mut GridPosition::from(position));
                 execution_times.push(now.elapsed());
+
+                let explored_positions = solver.explored_positions();
+                explored_positions_nb.push(explored_positions);
+
 
                 solved_score == *expected_score
             })
             .collect();
 
 
-        Statistics::new(results, execution_times)
+        Statistics::new(results, execution_times, explored_positions_nb)
     }
 }
 
@@ -120,6 +127,14 @@ mod tests {
     impl Solver for TestSolver {
         fn solve(&mut self, _position: &impl Position) -> i32{
             self.value
+        }
+
+        fn explored_positions(&self) -> usize {
+            0
+        }
+
+        fn reset_explored_positions(&mut self) {
+            ()
         }
     }
 

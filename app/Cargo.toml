@@ -8,3 +8,4 @@ edition = "2021"
 [dependencies]
 lib-min-max-solver = { path = "../libs/min-max-solver" }
 lib-benchmark = { path = "../libs/benchmark" }
+lib-game-board = { path = "../libs/game-board" }

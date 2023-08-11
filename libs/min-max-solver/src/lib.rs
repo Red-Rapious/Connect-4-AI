@@ -8,10 +8,6 @@ impl MinMaxSolver {
     pub fn new() -> Self {
         Self { explored_positions: 0 }
     }
-
-    pub fn explored_positions(&self) -> usize {
-        self.explored_positions
-    }
 }
 
 impl Solver for MinMaxSolver {
@@ -47,6 +43,14 @@ impl Solver for MinMaxSolver {
         }
 
         best_score
+    }
+
+    fn explored_positions(&self) -> usize {
+        self.explored_positions
+    }
+
+    fn reset_explored_positions(&mut self) {
+        self.explored_positions = 0;
     }
 }
 
