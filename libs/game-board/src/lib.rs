@@ -7,7 +7,7 @@ pub trait Position {
     fn height(&self) -> usize;
     fn can_play(&self, column: usize) -> bool;
     fn play(&mut self, column: usize, player: Cell);
-    fn winning(&self) -> Cell;
+    fn _winning(&self) -> Cell;
     fn is_winning_move(&mut self, column: usize, player: Cell) -> bool;
     fn nb_moves(&self) -> usize;
 }

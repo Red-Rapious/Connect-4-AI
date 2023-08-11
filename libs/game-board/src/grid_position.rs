@@ -30,7 +30,7 @@ impl GridPosition {
         }
     }
 
-    fn unplay(&mut self, column: usize) {
+    fn _unplay(&mut self, column: usize) {
         self.nb_moves -= 1;
         self.player_turn = self.player_turn.swap_turn();
 
@@ -77,7 +77,7 @@ impl Position for GridPosition {
         self.player_turn = self.player_turn.swap_turn();
     }
 
-    fn winning(&self) -> Cell {
+    fn _winning(&self) -> Cell {
         // Horizontal
         for line in 0..self.height {
             for column in 0..self.width-3 {
@@ -111,12 +111,51 @@ impl Position for GridPosition {
         Cell::Empty
     }
 
-    fn is_winning_move(&mut self, column: usize, player: Cell) -> bool {
+    /*fn is_winning_move(&mut self, column: usize, player: Cell) -> bool {
         self.play(column, player);
         let is_winning_move = self.winning();
         self.unplay(column);
 
         is_winning_move != Cell::Empty
+    }*/
+
+    fn is_winning_move(&mut self, column: usize, player: Cell) -> bool {
+        let mut line = 0;
+        while self.grid[line][column] != Cell::Empty {
+            line += 1;
+        }
+
+        // Vertical align: check if the 3 cells below are of the player's color
+        if line >= 3
+            && self.grid[line-3][column] == player
+            && self.grid[line-2][column] == player
+            && self.grid[line-1][column] == player {
+                return true;
+        }
+
+        // Other aligns
+        for dy in [-1, 0, 1] {
+            let mut nb_nearby = 0;
+            for dx in [-1, 1] {
+                let mut x = column as i32 + dx;
+                let mut y = line as i32 + dx*dy;
+
+                while 
+                    0 <= x && x < self.width as i32
+                 && 0 <= y && y < self.height as i32
+                 && self.grid[y as usize][x as usize] == player {
+                    x += dx;
+                    y += dx*dy;
+                    nb_nearby += 1;
+                 }
+            }
+
+            if nb_nearby >= 3 {
+                return true;
+            }
+        }
+
+        false
     }
 
     fn nb_moves(&self) -> usize {
