@@ -1,6 +1,6 @@
 use std::fs::File;
 use std::io::{BufReader, BufRead};
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 use lib_game_board::Solver;
 use lib_game_board::sequence_position::SequencePosition;
@@ -74,14 +74,19 @@ impl TestSet
     }
 
     pub fn test_solver(&self, solver: &impl Solver) -> Statistics {
+        let mut execution_times: Vec<Duration> = Vec::with_capacity(self.games_moves.len());
+
         let results: Vec<bool> = self.games_moves
             .iter()
-            .map(|(position, expected_score)| 
-                solver.solve(&GridPosition::from(position)) 
-                == *expected_score)
+            .map(|(position, expected_score)| {
+                let now = Instant::now();
+                let solved_score = solver.solve(&GridPosition::from(position));
+                execution_times.push(now.elapsed());
+
+                solved_score == *expected_score
+            })
             .collect();
 
-        let execution_times = vec![Duration::new(0, 0); results.len()];
 
         Statistics::new(results, execution_times)
     }

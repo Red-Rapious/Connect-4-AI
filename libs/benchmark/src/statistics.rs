@@ -1,4 +1,5 @@
 use std::time::Duration;
+use std::fmt;
 
 pub struct Statistics {
     results: Vec<bool>,
@@ -37,6 +38,12 @@ impl Statistics {
     }
 }
 
+impl fmt::Display for Statistics {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "Accuracy: {}%; Mean time: {:?}", (self.accuracy() * 100.0) as usize, self.mean_time())
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -48,5 +55,14 @@ mod tests {
             vec![Duration::new(0, 0); 4]);
         
         assert_eq!(stats.accuracy(), 0.75);
+    }
+
+    #[test]
+    fn display() {
+        let stats = Statistics::new(
+            vec![true, true, true, false], 
+            vec![Duration::new(0, 0); 4]);
+
+        assert_eq!(format!("{}", stats), "Accuracy: 75%; Mean time: 0ns".to_string());
     }
 }
