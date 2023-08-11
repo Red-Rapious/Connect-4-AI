@@ -25,7 +25,7 @@ impl Solver for MinMaxSolver {
 
         // Next move is winnable
         for column in 0..position.width() {
-            if position.can_play(column) && position.is_winning_move(column, position.player_turn()) {
+            if position.can_play(column) && position.is_winning_move(column) {
                 return ((position.width()*position.height() + 1 - position.nb_moves()) / 2) as i32;
             }
         }
@@ -37,7 +37,7 @@ impl Solver for MinMaxSolver {
         for column in 0..position.width() {
             if position.can_play(column) {
                 let mut position2 = position.clone();
-                position2.play(column, position2.player_turn());
+                position2.play(column);
 
                 let score = - self.solve(&mut position2);
                 if score > best_score {

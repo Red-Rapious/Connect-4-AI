@@ -62,16 +62,16 @@ impl Position for GridPosition {
         self.grid[self.height-1][column] == Cell::Empty
     }
 
-    fn play(&mut self, column: usize, player: Cell) {
+    fn play(&mut self, column: usize) {
         assert!(column < self.width);
         assert!(self.can_play(column));
-        assert_ne!(player, Cell::Empty);
+        assert_ne!(self.player_turn, Cell::Empty);
 
         let mut line = 0;
         while self.grid[line][column] != Cell::Empty {
             line += 1
         }
-        self.grid[line][column] = player;
+        self.grid[line][column] = self.player_turn;
 
         self.nb_moves += 1;
         self.player_turn = self.player_turn.swap_turn();
@@ -119,7 +119,7 @@ impl Position for GridPosition {
         is_winning_move != Cell::Empty
     }*/
 
-    fn is_winning_move(&self, column: usize, player: Cell) -> bool {
+    fn is_winning_move(&self, column: usize) -> bool {
         let mut line = 0;
         while self.grid[line][column] != Cell::Empty {
             line += 1;
@@ -127,9 +127,9 @@ impl Position for GridPosition {
 
         // Vertical align: check if the 3 cells below are of the player's color
         if line >= 3
-            && self.grid[line-3][column] == player
-            && self.grid[line-2][column] == player
-            && self.grid[line-1][column] == player {
+            && self.grid[line-3][column] == self.player_turn
+            && self.grid[line-2][column] == self.player_turn
+            && self.grid[line-1][column] == self.player_turn {
                 return true;
         }
 
@@ -143,7 +143,7 @@ impl Position for GridPosition {
                 while 
                     0 <= x && x < self.width as i32
                  && 0 <= y && y < self.height as i32
-                 && self.grid[y as usize][x as usize] == player {
+                 && self.grid[y as usize][x as usize] == self.player_turn {
                     x += dx;
                     y += dx*dy;
                     nb_nearby += 1;
@@ -169,7 +169,7 @@ impl From<&SequencePosition> for GridPosition {
         let mut player = FIRST_PLAYER;
 
         for column in sequence_position.sequence() {
-            grid_position.play(column-1, player);
+            grid_position.play(column-1);
             player = player.swap_turn();
         }
 
@@ -206,10 +206,8 @@ mod tests {
             let mut grid_position = GridPosition::new(7, 6);
 
             for column in 0..7 {
-                for count in 0..6 {
-                    dbg!(column);
-                    dbg!(count);
-                    grid_position.play(column, Cell::Red);
+                for _ in 0..6 {
+                    grid_position.play(column);
                 }
                 assert!(!grid_position.can_play(column));
             }
@@ -222,16 +220,16 @@ mod tests {
         #[test]
         fn grid_position_1() {
             let mut grid_position = GridPosition::new(7, 6);
-            grid_position.play(0, Cell::Red);
+            grid_position.play(0);
 
-            assert_eq!(grid_position.grid[0][0], Cell::Red);
+            assert_eq!(grid_position.grid[0][0], FIRST_PLAYER);
         }
 
         #[test]
         fn grid_position_2() {
             let mut grid_position = GridPosition::new(7, 6);
-            grid_position.play(0, Cell::Red);
-            grid_position.play(0, Cell::Yellow);
+            grid_position.play(0);
+            grid_position.play(0);
 
             assert_eq!(grid_position.grid[0][0], Cell::Red);
             assert_eq!(grid_position.grid[1][0], Cell::Yellow);
@@ -250,24 +248,27 @@ mod tests {
         fn test_vertical() {
             let mut position = GridPosition::new(7, 6);
             for _ in 0..3 {
-                assert!(!position.is_winning_move(0, Cell::Red));
-                position.play(0, Cell::Red);
+                assert!(!position.is_winning_move(0));
+                position.play(0); // red player play in 0
+                position.play(1); // yellow player play in 1
             }
-            assert!(position.is_winning_move(0, Cell::Red));
-            assert_eq!(position.nb_moves, 3);
-            assert_eq!(position.player_turn, Cell::Yellow);
+            assert_eq!(position.player_turn, Cell::Red);
+            assert!(position.is_winning_move(0));
+            assert_eq!(position.nb_moves, 6);
         }
 
         #[test]
         fn test_horizontal() {
             let mut position = GridPosition::new(7, 6);
             for column in 0..3 {
-                assert!(!position.is_winning_move(column, Cell::Red));
-                position.play(column, Cell::Red);
+                assert!(!position.is_winning_move(column));
+                // both player play on the same column
+                position.play(column);
+                position.play(column);
             }
-            assert!(position.is_winning_move(3, Cell::Red));
-            assert_eq!(position.nb_moves, 3);
-            assert_eq!(position.player_turn, Cell::Yellow);
+            assert_eq!(position.player_turn, Cell::Red);
+            assert!(position.is_winning_move(3));
+            assert_eq!(position.nb_moves, 6);
         }
     }
 
@@ -286,13 +287,13 @@ mod tests {
         #[test]
         fn sequence_line1() {
             let mut expected_result = GridPosition::new(7, 6);
-            expected_result.play(0, Cell::Red);
-            expected_result.play(2, Cell::Red);
-            expected_result.play(4, Cell::Red);
-            expected_result.play(6, Cell::Red);
-            expected_result.play(1, Cell::Yellow);
-            expected_result.play(3, Cell::Yellow);
-            expected_result.play(5, Cell::Yellow);
+            expected_result.play(0);
+            expected_result.play(1);
+            expected_result.play(2);
+            expected_result.play(3);
+            expected_result.play(4);
+            expected_result.play(5);
+            expected_result.play(6);
 
             assert_eq!(
                 GridPosition::from(&SequencePosition::from(&"1234567".to_string())),
