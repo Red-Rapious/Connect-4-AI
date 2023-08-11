@@ -95,6 +95,7 @@ impl TestSet
 #[cfg(test)]
 mod tests {
     use super::*;
+    use lib_game_board::Position;
 
     pub struct TestSolver {
         value: i32
@@ -105,7 +106,7 @@ mod tests {
         }
     }
     impl Solver for TestSolver {
-        fn solve<P>(&self, _position: &P) -> i32 where P: lib_game_board::Position {
+        fn solve(&self, _position: &impl Position) -> i32{
             self.value
         }
     }
