@@ -1,17 +1,21 @@
 use crate::{*, sequence_position::SequencePosition};
 
-#[derive(Debug, PartialEq)]
+const FIRST_PLAYER: Cell = Cell::Red;
+
+#[derive(Debug, PartialEq, Clone)]
 pub struct GridPosition {
+    player_turn: Cell,
     width: usize,
     height: usize,
-    grid: Vec<Vec<Cell>>
+    grid: Vec<Vec<Cell>>,
+    nb_moves: usize
 }
 
 impl GridPosition {
     pub fn new(width: usize, height: usize) -> Self {
         let grid = (0..height).map(|_| vec![Cell::Empty; width]).collect();
 
-        Self { width, height, grid }
+        Self { player_turn: FIRST_PLAYER, width, height, grid, nb_moves: 0 }
     }
 
     fn is_align(&self, line: usize, column: usize, incrementer: (i32, i32)) -> Cell {
@@ -25,9 +29,25 @@ impl GridPosition {
             Cell::Empty
         }
     }
+
+    fn unplay(&mut self, column: usize) {
+        self.nb_moves -= 1;
+        self.player_turn = self.player_turn.swap_turn();
+
+        for line in (0..self.height).rev() {
+            if self.grid[line][column] != Cell::Empty {
+                self.grid[line][column] = Cell::Empty;
+                return;
+            }
+        }
+    }
 }
 
 impl Position for GridPosition {
+    fn player_turn(&self) -> Cell {
+        self.player_turn
+    }
+
     fn width(&self) -> usize {
         self.width
     }
@@ -52,6 +72,9 @@ impl Position for GridPosition {
             line += 1
         }
         self.grid[line][column] = player;
+
+        self.nb_moves += 1;
+        self.player_turn = self.player_turn.swap_turn();
     }
 
     fn winning(&self) -> Cell {
@@ -87,20 +110,28 @@ impl Position for GridPosition {
 
         Cell::Empty
     }
+
+    fn is_winning_move(&mut self, column: usize, player: Cell) -> bool {
+        self.play(column, player);
+        let is_winning_move = self.winning();
+        self.unplay(column);
+
+        is_winning_move != Cell::Empty
+    }
+
+    fn nb_moves(&self) -> usize {
+        self.nb_moves
+    }
 }
 
 impl From<&SequencePosition> for GridPosition {
     fn from(sequence_position: &SequencePosition) -> Self {
-        let mut grid_position = GridPosition::new(7, 6);
-        let mut player = Cell::Red;
+        let mut grid_position = GridPosition::new(7, 6);        
+        let mut player = FIRST_PLAYER;
 
         for column in sequence_position.sequence() {
             grid_position.play(column-1, player);
-            player = match player {
-                Cell::Red => Cell::Yellow,
-                Cell::Yellow => Cell::Red,
-                Cell::Empty => panic!()
-            };
+            player = player.swap_turn();
         }
 
         grid_position
@@ -170,6 +201,8 @@ mod tests {
     }
 
     // TODO: test `winning`
+
+    // TODO: test `unplay`
 
     mod from_sequence_position {
         use super::*;

@@ -80,7 +80,7 @@ impl TestSet
             .iter()
             .map(|(position, expected_score)| {
                 let now = Instant::now();
-                let solved_score = solver.solve(&GridPosition::from(position));
+                let solved_score = solver.solve(&mut GridPosition::from(position));
                 execution_times.push(now.elapsed());
 
                 solved_score == *expected_score
@@ -106,7 +106,7 @@ mod tests {
         }
     }
     impl Solver for TestSolver {
-        fn solve(&self, _position: &impl Position) -> i32{
+        fn solve(&self, _position: &mut impl Position) -> i32{
             self.value
         }
     }
