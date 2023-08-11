@@ -2,7 +2,7 @@ use std::fs::File;
 use std::io::{BufReader, BufRead};
 use std::time::{Duration, Instant};
 
-use lib_game_board::Solver;
+use lib_game_board::{Solver, Position};
 use lib_game_board::sequence_position::SequencePosition;
 use lib_game_board::grid_position::GridPosition;
 use statistics::Statistics;
@@ -20,10 +20,10 @@ impl Benchmark
         Self { test_sets }
     }
 
-    pub fn benchmark(&self, solver: &mut impl Solver) -> Vec<Statistics> {
+    pub fn benchmark<P: Position>(&self, solver: &mut impl Solver) -> Vec<Statistics> {
         self.test_sets
             .iter()
-            .map(|test| test.test_solver(solver))
+            .map(|test| test.test_solver::<P>(solver))
             .collect()
     }
 }
@@ -85,7 +85,7 @@ impl TestSet
         &self.games_moves
     }
 
-    pub fn test_solver(&self, solver: &mut impl Solver) -> Statistics {
+    pub fn test_solver<P: Position>(&self, solver: &mut impl Solver) -> Statistics {
         let mut execution_times: Vec<Duration> = Vec::with_capacity(self.games_moves.len());
         let mut explored_positions_nb: Vec<usize> = Vec::with_capacity(self.games_moves.len());
 
@@ -162,7 +162,7 @@ mod tests {
             let mut solver = TestSolver::new(0);
 
             assert_eq!(
-                test_set.test_solver(&mut solver).results(),
+                test_set.test_solver::<GridPosition>(&mut solver).results(),
                 &vec![false; test_set.games_moves.len()]
             )
         }
@@ -173,7 +173,7 @@ mod tests {
             let mut solver = TestSolver::new(11);
 
             let correctly_solved: usize = test_set
-                .test_solver(&mut solver)
+                .test_solver::<GridPosition>(&mut solver)
                 .results()
                 .iter()
                 .map(|b| if *b { 1 } else { 0 })

@@ -1,5 +1,6 @@
 pub mod grid_position;
 pub mod sequence_position;
+pub mod stack_position;
 
 pub trait Position {
     fn player_turn(&self) -> Cell;
