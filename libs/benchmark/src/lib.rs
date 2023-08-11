@@ -2,7 +2,7 @@ use std::fs::File;
 use std::io::{BufReader, BufRead};
 use std::time::{Duration, Instant};
 
-use lib_game_board::{Solver, Position};
+use lib_game_board::{Solver, Position, WeakSolver};
 use lib_game_board::sequence_position::SequencePosition;
 use lib_game_board::grid_position::GridPosition;
 use statistics::Statistics;
@@ -24,6 +24,13 @@ impl Benchmark
         self.test_sets
             .iter()
             .map(|test| test.test_solver::<P>(solver))
+            .collect()
+    }
+
+    pub fn benchmark_weak<P: Position>(&self, solver: &mut impl WeakSolver) -> Vec<Statistics> {
+        self.test_sets
+            .iter()
+            .map(|test| test.test_weak_solver::<P>(solver))
             .collect()
     }
 }
@@ -109,6 +116,36 @@ impl TestSet
 
         Statistics::new(results, execution_times, explored_positions_nb)
     }
+
+    pub fn test_weak_solver<P: Position>(&self, solver: &mut impl WeakSolver) -> Statistics {
+        let mut execution_times: Vec<Duration> = Vec::with_capacity(self.games_moves.len());
+        let mut explored_positions_nb: Vec<usize> = Vec::with_capacity(self.games_moves.len());
+
+        let results: Vec<bool> = self.games_moves
+            .iter()
+            .map(|(position, expected_score)| {
+                let expected_score = 
+                    if *expected_score == 0 { 0 } 
+                    else if *expected_score < 0 { -1 } 
+                    else { 1 };
+                    
+                solver.reset_explored_positions();
+
+                let now = Instant::now();
+                let solved_score = solver.weak_solve(&mut GridPosition::from(position));
+                execution_times.push(now.elapsed());
+
+                let explored_positions = solver.explored_positions();
+                explored_positions_nb.push(explored_positions);
+
+
+                solved_score == expected_score
+            })
+            .collect();
+
+
+        Statistics::new(results, execution_times, explored_positions_nb)
+    }
 }
 
 #[cfg(test)]
@@ -126,6 +163,19 @@ mod benchmark_tests {
     }
     impl Solver for TestSolver {
         fn solve(&mut self, _position: &impl Position) -> i32{
+            self.value
+        }
+
+        fn explored_positions(&self) -> usize {
+            0
+        }
+
+        fn reset_explored_positions(&mut self) {
+            ()
+        }
+    }
+    impl WeakSolver for TestSolver {
+        fn weak_solve(&mut self, _position: &impl Position) -> i32{
             self.value
         }
 
@@ -174,6 +224,36 @@ mod benchmark_tests {
 
             let correctly_solved: usize = test_set
                 .test_solver::<GridPosition>(&mut solver)
+                .results()
+                .iter()
+                .map(|b| if *b { 1 } else { 0 })
+                .sum();
+
+            assert_eq!(correctly_solved, 104);
+        }
+    }
+
+    mod test_weak_solver {
+        use super::*;
+
+        #[test]
+        fn test_test_solver_0() {
+            let test_set = TestSet::new(1, 1, &".", None);
+            let mut solver = TestSolver::new(0);
+
+            assert_eq!(
+                test_set.test_weak_solver::<GridPosition>(&mut solver).results(),
+                &vec![false; test_set.games_moves.len()]
+            )
+        }
+
+        #[test]
+        fn test_test_solver_11() {
+            let test_set = TestSet::new(1, 1, &".", None);
+            let mut solver = TestSolver::new(11);
+
+            let correctly_solved: usize = test_set
+                .test_weak_solver::<GridPosition>(&mut solver)
                 .results()
                 .iter()
                 .map(|b| if *b { 1 } else { 0 })

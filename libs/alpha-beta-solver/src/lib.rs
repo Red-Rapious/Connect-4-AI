@@ -1,4 +1,4 @@
-use lib_game_board::Solver;
+use lib_game_board::{Solver, WeakSolver};
 
 pub struct AlphaBetaSolver {
     explored_positions: usize
@@ -51,10 +51,6 @@ impl AlphaBetaSolver {
 
         alpha
     }
-
-    pub fn weak_solve(&mut self, position: &(impl lib_game_board::Position + Clone)) -> i32 {
-        self.solve_range(position, -1, 1)
-    }
 }
 
 impl Solver for AlphaBetaSolver {
@@ -62,6 +58,20 @@ impl Solver for AlphaBetaSolver {
     fn solve(&mut self, position: &(impl lib_game_board::Position + Clone)) -> i32 {
         let best_score = (position.width() * position.height()) as i32;
         self.solve_range(position, -best_score, best_score)
+    }
+
+    fn explored_positions(&self) -> usize {
+        self.explored_positions
+    }
+
+    fn reset_explored_positions(&mut self) {
+        self.explored_positions = 0;
+    }
+}
+
+impl WeakSolver for AlphaBetaSolver {
+    fn weak_solve(&mut self, position: &(impl lib_game_board::Position + Clone)) -> i32 {
+        self.solve_range(position, -1, 1)
     }
 
     fn explored_positions(&self) -> usize {

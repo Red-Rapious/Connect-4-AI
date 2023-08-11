@@ -19,8 +19,9 @@ I am using [Pascal Pons's test sets](http://blog.gamesolver.org/solving-connect-
 | Test Set | Type | Accuracy | Position representation | Execution time (mean) | Explored positions (mean) |
 | -------- | ---- | -------- | ----------------------- | --------------------- | ------------------------- |
 | L3 R1 | Strong | 100% | `GridPosition` | 996μs | 283 |
-| L2 R1 | Strong | 100% | `GridPosition` | TODO | TODO |
-| L2 R2 | Strong | 100% | `GridPosition` | TODO | TODO |
+| L3 R1 | Weak | 100% | `GridPosition` | 783μs | 222 |
+<!--| L2 R1 | Strong | 100% | `GridPosition` | TODO | TODO |-->
+<!--| L2 R1 | Weak | 100% | `GridPosition` | TODO | TODO |-->
 
 ## Workspace description
 - [`game-board`](libs/game-board/) defines some basic traits: the `Position` trait, which represents a Connect 4 grid, and the `Solver` trait, that can play the game.

@@ -38,3 +38,9 @@ pub trait Solver{
     fn explored_positions(&self) -> usize;
     fn reset_explored_positions(&mut self);
 }
+
+pub trait WeakSolver{
+    fn weak_solve(&mut self, position: &(impl Position + Clone)) -> i32;
+    fn explored_positions(&self) -> usize;
+    fn reset_explored_positions(&mut self);
+}
