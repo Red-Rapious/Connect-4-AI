@@ -18,8 +18,7 @@ fn _benchmark_min_max() {
 }
 
 fn benchmark_alpha_beta() {
-    let move_order: &'static [usize] = &[3, 4, 2, 5, 1, 6, 0];
-    let mut alpha_beta_solver = AlphaBetaSolver::new(move_order);
+    let mut alpha_beta_solver = AlphaBetaSolver::new(vec![3, 4, 2, 5, 1, 6, 0]);
     let test_sets = vec![
         TestSet::new(3, 1, &"libs/benchmark", None),
         //TestSet::new(2, 1, &"libs/benchmark", None),
@@ -34,8 +33,7 @@ fn benchmark_alpha_beta() {
 }
 
 fn benchmark_alpha_beta_weak() {
-    let move_order: &'static [usize] = &[3, 4, 2, 5, 1, 6, 0];
-    let mut alpha_beta_solver = AlphaBetaSolver::new(move_order);
+    let mut alpha_beta_solver = AlphaBetaSolver::new(vec![3, 4, 2, 5, 1, 6, 0]);
     let test_sets = vec![
         TestSet::new(3, 1, &"libs/benchmark", None),
         //TestSet::new(2, 1, &"libs/benchmark", None),
