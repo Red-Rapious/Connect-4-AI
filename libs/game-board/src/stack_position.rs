@@ -92,6 +92,10 @@ impl Position for StackPosition {
     fn from_seq(sequence: &SequencePosition) -> Self {
         Self::from(sequence)
     }
+
+    fn key(&self) -> u64 {
+        todo!("Key not implemented for StackPosition");
+    }
 }
 
 impl From<&SequencePosition> for StackPosition {

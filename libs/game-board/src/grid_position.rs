@@ -165,6 +165,10 @@ impl Position for GridPosition {
     fn from_seq(sequence: &SequencePosition) -> Self {
         Self::from(sequence)
     }
+
+    fn key(&self) -> u64 {
+        todo!("Key not implemented for GridPosition");
+    }
 }
 
 impl From<&SequencePosition> for GridPosition {

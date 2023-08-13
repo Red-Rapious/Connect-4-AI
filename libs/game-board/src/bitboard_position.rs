@@ -94,6 +94,10 @@ impl Position for BitboardPosition {
     fn from_seq(sequence: &SequencePosition) -> Self {
         Self::from(sequence)
     }
+
+    fn key(&self) -> u64 {
+        self.board + self.mask
+    }
 }
 
 impl From<&SequencePosition> for BitboardPosition {

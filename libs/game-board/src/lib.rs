@@ -17,6 +17,7 @@ pub trait Position {
     fn is_winning_move(&self, column: usize) -> bool;
     fn nb_moves(&self) -> usize;
     fn from_seq(sequence: &SequencePosition) -> Self;
+    fn key(&self) -> u64;
 }
 
 #[derive(Debug, Clone, PartialEq, Copy)]
