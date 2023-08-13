@@ -55,12 +55,13 @@ fn benchmark_bitboard() {
     let mut alpha_beta_solver = AlphaBetaSolver::new(vec![3, 4, 2, 5, 1, 6, 0]);
     let test_sets = vec![
         TestSet::new(3, 1, &"libs/benchmark", None),
-        //TestSet::new(2, 1, &"libs/benchmark", None),
+        TestSet::new(2, 1, &"libs/benchmark", None),
         ];
     let benchmark = Benchmark::new(test_sets);
 
     let stats = benchmark.benchmark::<BitboardPosition>(&mut alpha_beta_solver);
     println!("AlphaBeta | Bitboard - Test Set L3 R1:\n\t{}", stats[0]);
+    println!("AlphaBeta | Bitboard - Test Set L2 R1:\n\t{}", stats[1]);
 }
 
 fn benchmark_bitboard_weak() {
