@@ -3,6 +3,8 @@ use lib_alpha_beta_solver::{alpha_beta_solver::AlphaBetaSolver, alpha_beta_with_
 use lib_benchmark::{Benchmark, TestSet};
 use lib_game_board::{grid_position::GridPosition, bitboard_position::BitboardPosition, Solver, stack_position::StackPosition, WeakSolver};
 
+use std::{io::Write, time::Instant};
+
 fn main() {
     // /target/... solver weak position move_ordering L R
     let args: Vec<String> = std::env::args().collect();
@@ -14,7 +16,6 @@ fn main() {
         println!("\t- 'weak': compute the numbers of move until the end (strong) or only the winner (weak). Choose between 'strong' and 'weak'.");
         println!("\t- 'position': the representation of the board. Choose between 'grid', 'stack' and 'bitboard'.");
         println!("\t- 'move_ordering': the order of the moves. Impactful only for Alpha-Beta-based solvers. Choose between 'left_to_right', and 'center_first'.");
-        //println!("\t- 'transposition': use a transposition table or not. Impactful only for Alpha-Beta-based solvers. Choose between 'left_to_right', and 'center_first'.");
         println!("\t- 'L': the overall state of the game in the test dataset. Choose between 1, 2 and 3, where 3 is the easiest.");
         println!("\t- 'R': the overall difficulty of the game in the test dataset. Choose between 1, 2 and 3, where 3 is the easiest. Some ratings aren't available depending on L.");
         return;
@@ -43,6 +44,17 @@ fn main() {
         _ => panic!("Unknown solver name.")
     };
 
+
+    println!("\n\nSelected arguments:");
+    println!("\t- Solver: {}", solver_string);
+    println!("\t- Solving type: {}", weak_string);
+    println!("\t- Move ordering: {}", move_ordering_string);
+    println!("\t- Test set: L{} R{}", length, rating);
+    print!("\nBeginning of the benchmark... ");
+    std::io::stdout().flush().unwrap();
+
+    let now = Instant::now();
+
     let stats: Vec<lib_benchmark::statistics::Statistics> = 
     if weak_string.as_str() == "strong" { 
         match position_string.as_str() {
@@ -63,7 +75,9 @@ fn main() {
         panic!("Unknown weak/strong argument.")
     };
 
-    println!("{} - Test Set L{} R{}:\n\t{}", solver_string, length, rating, stats[0]);
+    println!("done in {:?}.\n", now.elapsed());
+
+    println!("Benchmark results:\n   {}", stats[0]);
 }
 
 enum AllowedSolver {

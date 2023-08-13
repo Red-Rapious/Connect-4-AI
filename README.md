@@ -57,11 +57,29 @@ $ cargo test
 ```
 This will execute unit tests for each component of the workspace.
 
-To launch the main program, run:
+The main program can be executed using:
 ```console
-$ cargo run
+$ cargo run [args]
 ```
+where `[args]` is the list of the arguments needed for the benchmark. 
 
+The general arguments list goes as follows:
+```console
+$ cargo run solver weak position move_ordering L R
+```
+With:
+- `solver`: the solver type. Choose between `min_max`, `alpha_beta` and `alpha_beta_with_transposition`.
+- `weak`: compute the numbers of move until the end (strong) or only the winner (weak). Choose between `strong` and `weak`.
+- `position`: the representation of the board. Choose between `grid`, `stack` and `bitboard`.
+- `move_ordering`: the order of the moves. Impactful only for Alpha-Beta-based solvers. Choose between `left_to_right`, and `center_first`.
+- `L`: the overall state of the game in the test dataset. Choose between 1, 2 and 3, where 3 is the easiest.
+- `R`: the overall difficulty of the game in the test dataset. Choose between 1, 2 and 3, where 3 is the easiest. Some ratings aren't available depending on `L`.
+
+For instance:
+```console
+$ cargo run alpha_beta_with_transposition weak bitboard center_first 3 1
+```
+launches a benchmark of the Alpha-Beta solver that uses a transposition table, in Weak mode. Positions will be represented with a Bitboard, and moves will be explored starting from the center columns. The benchmark will execute the dataset `L3 R1`.
 
 ## License
 This work is licensed under the [CC-BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/) license.
