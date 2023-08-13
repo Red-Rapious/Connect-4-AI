@@ -1,5 +1,5 @@
 use lib_min_max_solver::MinMaxSolver;
-use lib_alpha_beta_solver::AlphaBetaSolver;
+use lib_alpha_beta_solver::alpha_beta_solver::AlphaBetaSolver;
 use lib_benchmark::{Benchmark, TestSet};
 use lib_game_board::{grid_position::GridPosition, bitboard_position::BitboardPosition};
 
