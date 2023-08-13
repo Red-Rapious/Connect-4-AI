@@ -1,13 +1,13 @@
 use lib_game_board::{Solver, WeakSolver};
 use crate::transposition_table::{TranspositionTable, TABLE_SIZE};
 
-pub struct AlphaBetaWithTransposition {
+pub struct AlphaBetaWithIterativeDeepening {
     move_order: Vec<usize>,
     explored_positions: usize,
     transposition_table: TranspositionTable
 }
 
-impl AlphaBetaWithTransposition {
+impl AlphaBetaWithIterativeDeepening {
     pub fn new(move_order: Vec<usize>) -> Self {
         Self { move_order, explored_positions: 0, transposition_table: TranspositionTable::new(TABLE_SIZE) }
     }
@@ -62,11 +62,26 @@ impl AlphaBetaWithTransposition {
     }
 }
 
-impl Solver for AlphaBetaWithTransposition {
-    /// Uses negamax to solve the position.
+impl Solver for AlphaBetaWithIterativeDeepening {
     fn solve(&mut self, position: &(impl lib_game_board::Position + Clone)) -> i32 {
-        let best_score = (position.width() * position.height()) as i32;
-        self.solve_range(position, -best_score, best_score)
+        let mut min = - ((position.width()*position.height()) as i32 - position.nb_moves() as i32)/2;
+        let mut max = ((position.width()*position.height() + 1) as i32 - position.nb_moves() as i32)/2;
+
+        while min < max {
+            let mut med = min + (max - min)/2;
+            
+            if med <= 0 && min/2 < med { med = min/2; }
+            else if med >= 0 && max/2 > med { med = max/2; }
+
+            let r = self.solve_range(position, med, med+1);
+            if r <= med {
+                max = r;
+            } else {
+                min = r;
+            }
+        }
+
+        min
     }
 
     fn explored_positions(&self) -> usize {
@@ -78,9 +93,26 @@ impl Solver for AlphaBetaWithTransposition {
     }
 }
 
-impl WeakSolver for AlphaBetaWithTransposition {
+impl WeakSolver for AlphaBetaWithIterativeDeepening {
     fn weak_solve(&mut self, position: &(impl lib_game_board::Position + Clone)) -> i32 {
-        self.solve_range(position, -1, 1)
+        let mut min = -1;
+        let mut max = 1;
+
+        while min < max {
+            let mut med = min + (max - min)/2;
+            
+            if med <= 0 && min/2 < med { med = min/2; }
+            else if med >= 0 && max/2 > med { med = max/2; }
+
+            let r = self.solve_range(position, med, med+1);
+            if r <= med {
+                max = r;
+            } else {
+                min = r;
+            }
+        }
+
+        min
     }
 
     fn explored_positions(&self) -> usize {
@@ -93,14 +125,14 @@ impl WeakSolver for AlphaBetaWithTransposition {
 }
 
 #[cfg(test)]
-mod alpha_beta_with_transposition_tests {
+mod alpha_beta_with_iterative_deepening_tests {
     use super::*;
     use lib_game_board::bitboard_position::BitboardPosition;
     use lib_game_board::sequence_position::SequencePosition;
 
     #[test]
     fn bitboard_correctness() {
-        let mut alpha_beta_with_transposition = AlphaBetaWithTransposition::new((0..7).collect());
+        let mut alpha_beta_with_transposition = AlphaBetaWithIterativeDeepening::new((0..7).collect());
 
         assert_eq!(alpha_beta_with_transposition.solve(
         &mut BitboardPosition::from(

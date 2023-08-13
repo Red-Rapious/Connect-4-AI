@@ -1,5 +1,5 @@
 use lib_min_max_solver::MinMaxSolver;
-use lib_alpha_beta_solver::{alpha_beta_solver::AlphaBetaSolver, alpha_beta_with_transposition::AlphaBetaWithTransposition};
+use lib_alpha_beta_solver::{alpha_beta_solver::AlphaBetaSolver, alpha_beta_with_transposition::AlphaBetaWithTransposition, alpha_beta_with_iterative_deepening::AlphaBetaWithIterativeDeepening};
 use lib_benchmark::{Benchmark, TestSet};
 use lib_game_board::{grid_position::GridPosition, bitboard_position::BitboardPosition, Solver, stack_position::StackPosition, WeakSolver};
 
@@ -12,7 +12,7 @@ fn main() {
         println!("\n\nInvalid arguments list. The argument list should be as follow:");
         println!("\tcargo run solver weak position move_ordering length rating");
         println!("where:");
-        println!("\t- 'solver': the solver type. Choose between 'min_max', 'alpha_beta' and 'alpha_beta_with_transposition'.");
+        println!("\t- 'solver': the solver type. Choose between 'min_max', 'alpha_beta', 'alpha_beta_with_transposition', and 'alpha_beta_with_iterative_deepening'.");
         println!("\t- 'weak': compute the numbers of move until the end (strong) or only the winner (weak). Choose between 'strong' and 'weak'.");
         println!("\t- 'position': the representation of the board. Choose between 'grid', 'stack' and 'bitboard'.");
         println!("\t- 'move_ordering': the order of the moves. Impactful only for Alpha-Beta-based solvers. Choose between 'left_to_right', and 'center_first'.");
@@ -41,6 +41,7 @@ fn main() {
         "min_max" => AllowedSolver::MinMaxSolver(MinMaxSolver::new()),
         "alpha_beta" => AllowedSolver::AlphaBetaSolver(AlphaBetaSolver::new(move_ordering)),
         "alpha_beta_with_transposition" => AllowedSolver::AlphaBetaWithTransposition(AlphaBetaWithTransposition::new(move_ordering)),
+        "alpha_beta_with_iterative_deepening" => AllowedSolver::AlphaBetaWithIterativeDeepening(AlphaBetaWithIterativeDeepening::new(move_ordering)),
         _ => panic!("Unknown solver name.")
     };
 
@@ -83,7 +84,8 @@ fn main() {
 enum AllowedSolver {
     MinMaxSolver(MinMaxSolver),
     AlphaBetaSolver(AlphaBetaSolver),
-    AlphaBetaWithTransposition(AlphaBetaWithTransposition)
+    AlphaBetaWithTransposition(AlphaBetaWithTransposition),
+    AlphaBetaWithIterativeDeepening(AlphaBetaWithIterativeDeepening)
 }
 
 impl Solver for AllowedSolver {
@@ -93,6 +95,7 @@ impl Solver for AllowedSolver {
             MinMaxSolver(ref mut solver) => solver.solve(position),
             AlphaBetaSolver(ref mut solver) => solver.solve(position),
             AlphaBetaWithTransposition(ref mut solver) => solver.solve(position),
+            AlphaBetaWithIterativeDeepening(ref mut solver) => solver.solve(position)
         }
     }
 
@@ -102,6 +105,7 @@ impl Solver for AllowedSolver {
             MinMaxSolver(solver) => Solver::explored_positions(solver),
             AlphaBetaSolver(solver) => Solver::explored_positions(solver),
             AlphaBetaWithTransposition(solver) => Solver::explored_positions(solver),
+            AlphaBetaWithIterativeDeepening(solver) => Solver::explored_positions(solver)
         }
     }
 
@@ -111,6 +115,7 @@ impl Solver for AllowedSolver {
             MinMaxSolver(ref mut solver) => Solver::explored_positions(solver),
             AlphaBetaSolver(ref mut solver) => Solver::explored_positions(solver),
             AlphaBetaWithTransposition(ref mut solver) => Solver::explored_positions(solver),
+            AlphaBetaWithIterativeDeepening(ref mut solver) => Solver::explored_positions(solver)
         };
     }
 }
@@ -122,6 +127,7 @@ impl WeakSolver for AllowedSolver {
             MinMaxSolver(_) => panic!("MinMaxSolver does not implement WeakSolver trait."),
             AlphaBetaSolver(ref mut solver) => solver.weak_solve(position),
             AlphaBetaWithTransposition(ref mut solver) => solver.weak_solve(position),
+            AlphaBetaWithIterativeDeepening(ref mut solver) => solver.weak_solve(position)
         }
     }
 
@@ -131,6 +137,7 @@ impl WeakSolver for AllowedSolver {
             MinMaxSolver(_) => panic!("MinMaxSolver does not implement WeakSolver trait."),
             AlphaBetaSolver(solver) => WeakSolver::explored_positions(solver),
             AlphaBetaWithTransposition(solver) => WeakSolver::explored_positions(solver),
+            AlphaBetaWithIterativeDeepening(solver) => WeakSolver::explored_positions(solver)
         }
     }
 
@@ -140,6 +147,7 @@ impl WeakSolver for AllowedSolver {
             MinMaxSolver(_) => panic!("MinMaxSolver does not implement WeakSolver trait."),
             AlphaBetaSolver(ref mut solver) => WeakSolver::reset_explored_positions(solver),
             AlphaBetaWithTransposition(ref mut solver) => WeakSolver::reset_explored_positions(solver),
+            AlphaBetaWithIterativeDeepening(ref mut solver) => WeakSolver::reset_explored_positions(solver)
         }
     }
 }

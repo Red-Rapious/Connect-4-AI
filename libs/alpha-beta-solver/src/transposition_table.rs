@@ -1,3 +1,5 @@
+pub const TABLE_SIZE: usize = 10_000_000;
+
 #[derive(Debug)]
 pub struct TranspositionTable {
     table: Vec<TableEntry>
