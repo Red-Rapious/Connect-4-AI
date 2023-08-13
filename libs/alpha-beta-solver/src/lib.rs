@@ -1,5 +1,7 @@
 use lib_game_board::{Solver, WeakSolver};
 
+pub mod transposition_table;
+
 pub struct AlphaBetaSolver {
     move_order: Vec<usize>,
     explored_positions: usize
