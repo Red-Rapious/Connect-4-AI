@@ -32,6 +32,14 @@ I am using [Pascal Pons's test sets](http://blog.gamesolver.org/solving-connect-
 | L3 R1    | Weak   | Center-first  | 100%    | `BitboardPosition`      | 40μs                  | 110                       |
 | L2 R1    | Weak   | Center-first  | 100%    | `BitboardPosition`      | 277ms                 | 795 053                   |
 
+### Transposition table with Alpha-Beta and Bitboard
+| Test Set | Type   | Move order    |Accuracy | Position representation | Execution time (mean) | Explored positions (mean) |
+| -------- | ------ | ------------- | ------- | ----------------------- | --------------------- | ------------------------- |
+| L3 R1    | Strong | Center-first  | 100%    | `BitboardPosition`      | 64μs                  | 140                       |
+| L2 R1    | Strong | Center-first  | 100%    | `BitboardPosition`      | 265ms                 | 696 568                   |
+| L3 R1    | Weak   | Center-first  | 100%    | `BitboardPosition`      | 48μs                  | 108                       |
+| L2 R1    | Weak   | Center-first  | 100%    | `BitboardPosition`      | 250ms                 | 639 428                   |
+
 
 ## Workspace description
 - [`game-board`](libs/game-board/) defines some basic traits: the `Position` trait, which represents a Connect 4 grid, and the `Solver` trait, that can play the game.
