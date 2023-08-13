@@ -17,7 +17,7 @@ impl BitboardPosition {
     }
 
     fn top_mask(&self, column: usize) -> u64 {
-        (1 << (self.height - 1)) << (column * (self.height - 1))
+        (1 << (self.height - 1)) << (column * (self.height + 1))
     }
 
     fn bottom_mask(&self, column: usize) -> u64 {
@@ -118,23 +118,23 @@ mod bitboard_position_tests {
         use super::*;
 
         #[test]
-        fn grid_position_empty() {
+        fn empty_position() {
             let position = BitboardPosition::new(7, 6);
 
             for column in 0..7 {
-                assert!(position.can_play(column));
+                assert!(position.can_play(column), "Cannot play in column {} while one should be able to.", column);
             }
         }
 
         #[test]
-        fn grid_position_full() {
+        fn full_position() {
             let mut position = BitboardPosition::new(7, 6);
 
             for column in 0..7 {
                 for _ in 0..6 {
                     position.play(column);
                 }
-                assert!(!position.can_play(column));
+                assert!(!position.can_play(column), "Can play in column {} while one should not be able to.", column);
             }
         }
     }

@@ -11,6 +11,8 @@ pub struct GridPosition {
 
 impl GridPosition {
     pub fn new(width: usize, height: usize) -> Self {
+        assert!(height > 0);
+
         let grid = (0..height).map(|_| vec![Cell::Empty; width]).collect();
 
         Self { player_turn: FIRST_PLAYER, width, height, grid, nb_moves: 0 }

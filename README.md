@@ -7,14 +7,14 @@ My goal is to create a perfect Connect Four bot, capable of predicting the outco
 ## Results
 I am using [Pascal Pons's test sets](http://blog.gamesolver.org/solving-connect-four/02-test-protocol/) for Connect 4 AIs to benchmark my different solvers.
 
-### Min-Max (using Negamax)
+### Min-Max *(using Negamax)*
 
 | Test Set | Accuracy | Position representation | Execution time (mean) | Explored positions (mean) |
 | -------- | -------- | ----------------------- | --------------------- | ------------------------- |
 | L3 R1    | 100%     | `GridPosition`          | 32.7ms                | 11 024                    |
 | L3 R1    | 100%     | `StackPosition`         | 32.4ms                | 11 024                    |
 
-### Alpha-Beta (using Negamax)
+### Alpha-Beta *(using Negamax)*
 
 | Test Set | Type   | Move order    |Accuracy | Position representation | Execution time (mean) | Explored positions (mean) |
 | -------- | ------ | ------------- | ------- | ----------------------- | --------------------- | ------------------------- |
@@ -25,6 +25,13 @@ I am using [Pascal Pons's test sets](http://blog.gamesolver.org/solving-connect-
 
 <!--| L2 R1 | Strong | 100% | `GridPosition` | TODO | TODO |-->
 <!--| L2 R1 | Weak | 100% | `GridPosition` | TODO | TODO |-->
+
+### Bitboard with Alpha-Beta
+| Test Set | Type   | Move order    |Accuracy | Position representation | Execution time (mean) | Explored positions (mean) |
+| -------- | ------ | ------------- | ------- | ----------------------- | --------------------- | ------------------------- |
+| L3 R1    | Strong | Center-first  | 100%    | `BitboardPosition`      | 50μs                  | 142                       |
+| L3 R1    | Weak   | Center-first  | 100%    | `BitboardPosition`      | 40μs                  | 110                       |
+
 
 ## Workspace description
 - [`game-board`](libs/game-board/) defines some basic traits: the `Position` trait, which represents a Connect 4 grid, and the `Solver` trait, that can play the game.
