@@ -1,7 +1,5 @@
 use crate::{*, sequence_position::SequencePosition};
 
-const FIRST_PLAYER: Cell = Cell::Red;
-
 #[derive(Debug, PartialEq, Clone)]
 pub struct GridPosition {
     player_turn: Cell,
@@ -160,6 +158,10 @@ impl Position for GridPosition {
 
     fn nb_moves(&self) -> usize {
         self.nb_moves
+    }
+
+    fn from_seq(sequence: &SequencePosition) -> Self {
+        Self::from(sequence)
     }
 }
 

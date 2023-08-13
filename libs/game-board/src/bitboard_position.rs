@@ -1,29 +1,62 @@
 use crate::{*, sequence_position::SequencePosition};
 
-const FIRST_PLAYER: Cell = Cell::Red;
-
 #[derive(Debug, PartialEq, Clone)]
-pub struct StackPosition {
+pub struct BitboardPosition {
     player_turn: Cell,
     width: usize,
     height: usize,
-    stacks: Vec<Vec<Cell>>,
+    board: u64,
+    mask: u64,
     nb_moves: usize
 }
 
-impl StackPosition {
+impl BitboardPosition {
     pub fn new(width: usize, height: usize) -> Self {
-        let stacks = (0..width).map(|_| vec![]).collect();
+        assert!(width*(height+1) <= 64, "The board does not fit inside a 64bits bitboard.");
+        Self { player_turn: FIRST_PLAYER, width, height, board: 0, mask: 0, nb_moves: 0 }
+    }
 
-        Self { player_turn: FIRST_PLAYER, width, height, stacks, nb_moves: 0 }
+    fn top_mask(&self, column: usize) -> u64 {
+        (1 << (self.height - 1)) << (column * (self.height - 1))
+    }
+
+    fn bottom_mask(&self, column: usize) -> u64 {
+        1 << (column * (self.height + 1))
+    }
+
+    fn column_mask(&self, column: usize) -> u64 {
+        ((1 << self.height) - 1) << (column * (self.height + 1))
+    }
+
+    fn is_winning_board(&self, board: u64) -> bool {
+        // Horizontal 
+        let mut m = board & (board >> (self.height+1));
+        if m & (m >> (2 * (self.height + 1))) != 0 {
+            return true;
+        }
+
+        // Vertical
+        m = board & (board >> 1);
+        if (m & (m >> 2)) != 0 {
+            return true;
+        }
+
+        // Diagonals
+        m = board & (board >> self.height);
+        if m & (m >> (2 * self.height)) != 0 {
+            return true;
+        }
+
+        m = board & (board >> (self.height+2));
+        if m & (m >> (2*(self.height+2))) != 0 {
+            return true;
+        }
+
+        false
     }
 }
 
-impl Position for StackPosition {
-    fn player_turn(&self) -> Cell {
-        self.player_turn
-    }
-
+impl Position for BitboardPosition {
     fn width(&self) -> usize {
         self.width
     }
@@ -33,60 +66,29 @@ impl Position for StackPosition {
     }
 
     fn can_play(&self, column: usize) -> bool {
-        assert!(column < self.width);
-
-        self.stacks[column].len() < self.height
+        self.mask & self.top_mask(column) == 0
     }
 
     fn play(&mut self, column: usize) {
-        assert!(column < self.width);
-        assert_ne!(self.player_turn, Cell::Empty);
-        
-        assert!(self.can_play(column));
-        self.stacks[column].push(self.player_turn);
-
         self.nb_moves += 1;
         self.player_turn = self.player_turn.swap_turn();
-    }
 
-    fn is_winning_move(&self, column: usize) -> bool {
-        let line = self.stacks[column].len();
-
-        // Vertical align: check if the 3 cells below are of the player's color
-        if line >= 3
-            && self.stacks[column][line-3] == self.player_turn
-            && self.stacks[column][line-2] == self.player_turn
-            && self.stacks[column][line-1] == self.player_turn {
-                return true;
-        }
-
-        // Other aligns
-        for dy in [-1, 0, 1] {
-            let mut nb_nearby = 0;
-            for dx in [-1, 1] {
-                let mut x = column as i32 + dx;
-                let mut y = line as i32 + dx*dy;
-
-                while 
-                    0 <= x && x < self.width as i32
-                 && 0 <= y && y < self.stacks[x as usize].len() as i32
-                 && self.stacks[x as usize][y as usize] == self.player_turn {
-                    x += dx;
-                    y += dx*dy;
-                    nb_nearby += 1;
-                 }
-            }
-
-            if nb_nearby >= 3 {
-                return true;
-            }
-        }
-
-        false
+        self.board ^= self.mask;
+        self.mask |= self.mask + self.bottom_mask(column);
     }
 
     fn nb_moves(&self) -> usize {
         self.nb_moves
+    }
+
+    fn player_turn(&self) -> Cell {
+        self.player_turn
+    }
+
+    fn is_winning_move(&self, column: usize) -> bool {
+        let mut board_after = self.board;
+        board_after |= (self.mask + self.bottom_mask(column)) & self.column_mask(column);
+        self.is_winning_board(board_after)
     }
 
     fn from_seq(sequence: &SequencePosition) -> Self {
@@ -94,9 +96,9 @@ impl Position for StackPosition {
     }
 }
 
-impl From<&SequencePosition> for StackPosition {
+impl From<&SequencePosition> for BitboardPosition {
     fn from(sequence_position: &SequencePosition) -> Self {
-        let mut grid_position = StackPosition::new(7, 6);        
+        let mut grid_position = BitboardPosition::new(7, 6);        
         let mut player = FIRST_PLAYER;
 
         for column in sequence_position.sequence() {
@@ -109,7 +111,7 @@ impl From<&SequencePosition> for StackPosition {
 }
 
 #[cfg(test)]
-mod tests {
+mod bitboard_position_tests {
     use super::*;
 
     mod can_play {
@@ -117,7 +119,7 @@ mod tests {
 
         #[test]
         fn grid_position_empty() {
-            let position = StackPosition::new(7, 6);
+            let position = BitboardPosition::new(7, 6);
 
             for column in 0..7 {
                 assert!(position.can_play(column));
@@ -126,7 +128,7 @@ mod tests {
 
         #[test]
         fn grid_position_full() {
-            let mut position = StackPosition::new(7, 6);
+            let mut position = BitboardPosition::new(7, 6);
 
             for column in 0..7 {
                 for _ in 0..6 {
@@ -137,28 +139,7 @@ mod tests {
         }
     }
 
-    mod play {
-        use super::*;
-
-        #[test]
-        fn grid_position_1() {
-            let mut position = StackPosition::new(7, 6);
-            position.play(0);
-
-            assert_eq!(position.stacks[0][0], FIRST_PLAYER);
-        }
-
-        #[test]
-        fn grid_position_2() {
-            let mut position = StackPosition::new(7, 6);
-            position.play(0);
-            position.play(0);
-
-            assert_eq!(position.stacks[0][0], Cell::Red);
-            assert_eq!(position.stacks[0][1], Cell::Yellow);
-            assert_eq!(position.stacks[1].len(), 0);
-        }
-    }
+    // TODO: test `play`
 
     // TODO: test `winning`
 
@@ -169,7 +150,7 @@ mod tests {
 
         #[test]
         fn test_vertical() {
-            let mut position = StackPosition::new(7, 6);
+            let mut position = BitboardPosition::new(7, 6);
             for _ in 0..3 {
                 assert!(!position.is_winning_move(0));
                 position.play(0); // red player play in 0
@@ -182,7 +163,7 @@ mod tests {
 
         #[test]
         fn test_horizontal() {
-            let mut position = StackPosition::new(7, 6);
+            let mut position = BitboardPosition::new(7, 6);
             for column in 0..3 {
                 assert!(!position.is_winning_move(column));
                 // both player play on the same column
@@ -200,16 +181,16 @@ mod tests {
 
         #[test]
         fn sequence_empty() {
-            let expected_result = StackPosition::new(7, 6);
+            let expected_result = BitboardPosition::new(7, 6);
             assert_eq!(
-                StackPosition::from(&SequencePosition::from(&"".to_string())),
+                BitboardPosition::from(&SequencePosition::from(&"".to_string())),
                 expected_result
             )
         } 
 
         #[test]
         fn sequence_line1() {
-            let mut expected_result = StackPosition::new(7, 6);
+            let mut expected_result = BitboardPosition::new(7, 6);
             expected_result.play(0);
             expected_result.play(1);
             expected_result.play(2);
@@ -219,7 +200,7 @@ mod tests {
             expected_result.play(6);
 
             assert_eq!(
-                StackPosition::from(&SequencePosition::from(&"1234567".to_string())),
+                BitboardPosition::from(&SequencePosition::from(&"1234567".to_string())),
                 expected_result
             )
         } 

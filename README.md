@@ -16,12 +16,12 @@ I am using [Pascal Pons's test sets](http://blog.gamesolver.org/solving-connect-
 
 ### Alpha-Beta (using Negamax)
 
-| Test Set | Type   | Move order   |Accuracy | Position representation | Execution time (mean) | Explored positions (mean) |
-| -------- | ------ | ------------ | ------- | ----------------------- | --------------------- | ------------------------- |
-| L3 R1    | Strong | Default      | 100%    | `GridPosition`          | 996μs                 | 283                       |
-| L3 R1    | Weak   | Default      | 100%    | `GridPosition`          | 783μs                 | 222                       |
-| L3 R1    | Strong | Center-first |100%     | `GridPosition`          | 514μs                 | 142                       |
-| L3 R1    | Weak   | Center-first |100%     | `GridPosition`          | 383μs                 | 110                       |
+| Test Set | Type   | Move order    |Accuracy | Position representation | Execution time (mean) | Explored positions (mean) |
+| -------- | ------ | ------------- | ------- | ----------------------- | --------------------- | ------------------------- |
+| L3 R1    | Strong | Left to right | 100%    | `GridPosition`          | 996μs                 | 283                       |
+| L3 R1    | Weak   | Left to right | 100%    | `GridPosition`          | 783μs                 | 222                       |
+| L3 R1    | Strong | Center-first  | 100%    | `GridPosition`          | 525μs                 | 142                       |
+| L3 R1    | Weak   | Center-first  | 100%    | `GridPosition`          | 400μs                 | 110                       |
 
 <!--| L2 R1 | Strong | 100% | `GridPosition` | TODO | TODO |-->
 <!--| L2 R1 | Weak | 100% | `GridPosition` | TODO | TODO |-->

@@ -1,6 +1,11 @@
+use sequence_position::SequencePosition;
+
 pub mod grid_position;
 pub mod sequence_position;
 pub mod stack_position;
+pub mod bitboard_position;
+
+const FIRST_PLAYER: Cell = Cell::Red;
 
 pub trait Position {
     fn player_turn(&self) -> Cell;
@@ -11,6 +16,7 @@ pub trait Position {
     //fn winning(&self) -> Cell;
     fn is_winning_move(&self, column: usize) -> bool;
     fn nb_moves(&self) -> usize;
+    fn from_seq(sequence: &SequencePosition) -> Self;
 }
 
 #[derive(Debug, Clone, PartialEq, Copy)]

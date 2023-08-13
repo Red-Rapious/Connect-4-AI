@@ -4,7 +4,6 @@ use std::time::{Duration, Instant};
 
 use lib_game_board::{Solver, Position, WeakSolver};
 use lib_game_board::sequence_position::SequencePosition;
-use lib_game_board::grid_position::GridPosition;
 use statistics::Statistics;
 
 pub mod statistics;
@@ -20,14 +19,14 @@ impl Benchmark
         Self { test_sets }
     }
 
-    pub fn benchmark<P: Position>(&self, solver: &mut impl Solver) -> Vec<Statistics> {
+    pub fn benchmark<P: Position + Clone>(&self, solver: &mut impl Solver) -> Vec<Statistics> {
         self.test_sets
             .iter()
             .map(|test| test.test_solver::<P>(solver))
             .collect()
     }
 
-    pub fn benchmark_weak<P: Position>(&self, solver: &mut impl WeakSolver) -> Vec<Statistics> {
+    pub fn benchmark_weak<P: Position + Clone>(&self, solver: &mut impl WeakSolver) -> Vec<Statistics> {
         self.test_sets
             .iter()
             .map(|test| test.test_weak_solver::<P>(solver))
@@ -92,7 +91,7 @@ impl TestSet
         &self.games_moves
     }
 
-    pub fn test_solver<P: Position>(&self, solver: &mut impl Solver) -> Statistics {
+    pub fn test_solver<P: Position + Clone>(&self, solver: &mut impl Solver) -> Statistics {
         let mut execution_times: Vec<Duration> = Vec::with_capacity(self.games_moves.len());
         let mut explored_positions_nb: Vec<usize> = Vec::with_capacity(self.games_moves.len());
 
@@ -102,7 +101,7 @@ impl TestSet
                 solver.reset_explored_positions();
 
                 let now = Instant::now();
-                let solved_score = solver.solve(&mut GridPosition::from(position));
+                let solved_score = solver.solve(&mut P::from_seq(position));
                 execution_times.push(now.elapsed());
 
                 let explored_positions = solver.explored_positions();
@@ -117,7 +116,7 @@ impl TestSet
         Statistics::new(results, execution_times, explored_positions_nb)
     }
 
-    pub fn test_weak_solver<P: Position>(&self, solver: &mut impl WeakSolver) -> Statistics {
+    pub fn test_weak_solver<P: Position + Clone>(&self, solver: &mut impl WeakSolver) -> Statistics {
         let mut execution_times: Vec<Duration> = Vec::with_capacity(self.games_moves.len());
         let mut explored_positions_nb: Vec<usize> = Vec::with_capacity(self.games_moves.len());
 
@@ -132,7 +131,7 @@ impl TestSet
                 solver.reset_explored_positions();
 
                 let now = Instant::now();
-                let solved_score = solver.weak_solve(&mut GridPosition::from(position));
+                let solved_score = solver.weak_solve(&mut P::from_seq(position));
                 execution_times.push(now.elapsed());
 
                 let explored_positions = solver.explored_positions();
@@ -151,7 +150,7 @@ impl TestSet
 #[cfg(test)]
 mod benchmark_tests {
     use super::*;
-    use lib_game_board::Position;
+    use lib_game_board::grid_position::GridPosition;
 
     pub struct TestSolver {
         value: i32
