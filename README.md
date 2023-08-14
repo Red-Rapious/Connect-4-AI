@@ -53,8 +53,8 @@ I am using [Pascal Pons's test sets](http://blog.gamesolver.org/solving-connect-
 | -------- | ------ | ------------- | ----------------------------------- | --------------------- | ------------------------- |
 | L3 R1    | Strong | Center-first  | `AnticipatingBitboardPosition`      | 60μs                  | 57 122                    |
 | L2 R1    | Strong | Center-first  | `AnticipatingBitboardPosition`      | 3.3ms                 | 3 934 303                 |
-<!--| L3 R1    | Weak   | Center-first  | `AnticipatingBitboardPosition`      | μs                  |                        |-->
-<!--| L2 R1    | Weak   | Center-first  | `AnticipatingBitboardPosition`      | ms                 |                    |-->
+| L3 R1    | Weak   | Center-first  | `AnticipatingBitboardPosition`      | 25μs                  | 44                        |
+| L2 R1    | Weak   | Center-first  | `AnticipatingBitboardPosition`      | 7.4ms                 | 19 534                    |
 
 ## Workspace description
 - [`game-board`](libs/game-board/) defines some basic traits: the `Position` trait, which represents a Connect 4 grid, and the `Solver` trait, that can play the game.

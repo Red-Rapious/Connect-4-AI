@@ -108,7 +108,12 @@ impl TestSet
                 explored_positions_nb.push(explored_positions);
 
 
-                solved_score == *expected_score
+                if solved_score == *expected_score {
+                    true
+                } else {
+                    println!("Test failed: expected score was {}, but solved score is {}.", *expected_score, solved_score);
+                    false
+                }
             })
             .collect();
 
@@ -134,11 +139,21 @@ impl TestSet
                 let solved_score = solver.weak_solve(&mut P::from_seq(position));
                 execution_times.push(now.elapsed());
 
+                let solved_score = 
+                    if solved_score == 0 { 0 } 
+                    else if solved_score < 0 { -1 } 
+                    else { 1 };
+
                 let explored_positions = solver.explored_positions();
                 explored_positions_nb.push(explored_positions);
 
 
-                solved_score == expected_score
+                if solved_score == expected_score {
+                    true
+                } else {
+                    println!("Test failed: expected score was {}, but solved score is {}.", expected_score, solved_score);
+                    false
+                }
             })
             .collect();
 
