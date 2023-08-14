@@ -25,29 +25,36 @@ I am using [Pascal Pons's test sets](http://blog.gamesolver.org/solving-connect-
 | L3 R1    | Weak   | Center-first  | 100%     | `GridPosition`          | 400μs                 | 110                       |
 
 ### Bitboard *(with Alpha-Beta)*
-| Test Set | Type   | Move order    | Accuracy | Position representation | Execution time (mean) | Explored positions (mean) |
-| -------- | ------ | ------------- | -------- | ----------------------- | --------------------- | ------------------------- |
-| L3 R1    | Strong | Center-first  | 100%     | `BitboardPosition`      | 50μs                  | 142                       |
-| L2 R1    | Strong | Center-first  | 100%     | `BitboardPosition`      | 403ms                 | 1 183 210                 |
-| L3 R1    | Weak   | Center-first  | 100%     | `BitboardPosition`      | 40μs                  | 110                       |
-| L2 R1    | Weak   | Center-first  | 100%     | `BitboardPosition`      | 277ms                 | 795 053                   |
+| Test Set | Type   | Move order    | Position representation | Execution time (mean) | Explored positions (mean) |
+| -------- | ------ | ------------- | ----------------------- | --------------------- | ------------------------- |
+| L3 R1    | Strong | Center-first  | `BitboardPosition`      | 50μs                  | 142                       |
+| L2 R1    | Strong | Center-first  | `BitboardPosition`      | 403ms                 | 1 183 210                 |
+| L3 R1    | Weak   | Center-first  | `BitboardPosition`      | 40μs                  | 110                       |
+| L2 R1    | Weak   | Center-first  | `BitboardPosition`      | 277ms                 | 795 053                   |
 
 ### Transposition table *(with Alpha-Beta, Bitboard)*
-| Test Set | Type   | Move order    | Accuracy | Position representation | Execution time (mean) | Explored positions (mean) |
-| -------- | ------ | ------------- | -------- | ----------------------- | --------------------- | ------------------------- |
-| L3 R1    | Strong | Center-first  | 100%     | `BitboardPosition`      | 64μs                  | 140                       |
-| L2 R1    | Strong | Center-first  | 100%     | `BitboardPosition`      | 265ms                 | 696 568                   |
-| L3 R1    | Weak   | Center-first  | 100%     | `BitboardPosition`      | 48μs                  | 108                       |
-| L2 R1    | Weak   | Center-first  | 100%     | `BitboardPosition`      | 250ms                 | 639 428                   |
+| Test Set | Type   | Move order    | Position representation | Execution time (mean) | Explored positions (mean) |
+| -------- | ------ | ------------- | ----------------------- | --------------------- | ------------------------- |
+| L3 R1    | Strong | Center-first  | `BitboardPosition`      | 64μs                  | 140                       |
+| L2 R1    | Strong | Center-first  | `BitboardPosition`      | 265ms                 | 696 568                   |
+| L3 R1    | Weak   | Center-first  | `BitboardPosition`      | 48μs                  | 108                       |
+| L2 R1    | Weak   | Center-first  | `BitboardPosition`      | 250ms                 | 639 428                   |
 
 ### Iterative deepening *(with Alpha-Beta, Bitboard, Transposition table)*
-| Test Set | Type   | Move order    | Accuracy | Position representation | Execution time (mean) | Explored positions (mean) |
-| -------- | ------ | ------------- | -------- | ----------------------- | --------------------- | ------------------------- |
-| L3 R1    | Strong | Center-first  | 100%     | `BitboardPosition`      | 82μs                  | 91 554                    |
-| L2 R1    | Strong | Center-first  | 100%     | `BitboardPosition`      | 5.7ms                 | 7 299 614                 |
-| L3 R1    | Weak   | Center-first  | 100%     | `BitboardPosition`      | 53μs                  | 113                       |
-| L2 R1    | Weak   | Center-first  | 100%     | `BitboardPosition`      | 273ms                 | 714 680                   |
+| Test Set | Type   | Move order    | Position representation | Execution time (mean) | Explored positions (mean) |
+| -------- | ------ | ------------- | ----------------------- | --------------------- | ------------------------- |
+| L3 R1    | Strong | Center-first  | `BitboardPosition`      | 82μs                  | 91 554                    |
+| L2 R1    | Strong | Center-first  | `BitboardPosition`      | 5.7ms                 | 7 299 614                 |
+| L3 R1    | Weak   | Center-first  | `BitboardPosition`      | 53μs                  | 113                       |
+| L2 R1    | Weak   | Center-first  | `BitboardPosition`      | 273ms                 | 714 680                   |
 
+### Loosing move anticipation *(with Alpha-Beta, Bitboard, Transposition table, Iterative deepening)*
+| Test Set | Type   | Move order    | Position representation             | Execution time (mean) | Explored positions (mean) |
+| -------- | ------ | ------------- | ----------------------------------- | --------------------- | ------------------------- |
+| L3 R1    | Strong | Center-first  | `AnticipatingBitboardPosition`      | 60μs                  | 57 122                    |
+| L2 R1    | Strong | Center-first  | `AnticipatingBitboardPosition`      | 3.3ms                 | 3 934 303                 |
+<!--| L3 R1    | Weak   | Center-first  | `AnticipatingBitboardPosition`      | μs                  |                        |-->
+<!--| L2 R1    | Weak   | Center-first  | `AnticipatingBitboardPosition`      | ms                 |                    |-->
 
 ## Workspace description
 - [`game-board`](libs/game-board/) defines some basic traits: the `Position` trait, which represents a Connect 4 grid, and the `Solver` trait, that can play the game.

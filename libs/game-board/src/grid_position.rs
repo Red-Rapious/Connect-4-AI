@@ -167,7 +167,15 @@ impl Position for GridPosition {
     }
 
     fn key(&self) -> u64 {
-        todo!("Key not implemented for GridPosition");
+        todo!("key not implemented for GridPosition");
+    }
+
+    fn can_win_next(&self) -> bool {
+        todo!("can_win_next not implemented for GridPosition");
+    }
+
+    fn possible_non_loosing_moves(&self) -> u64 {
+        todo!("possible_non_loosing_moves not implemented for GridPosition");
     }
 }
 

@@ -94,7 +94,15 @@ impl Position for StackPosition {
     }
 
     fn key(&self) -> u64 {
-        todo!("Key not implemented for StackPosition");
+        todo!("key not implemented for StackPosition");
+    }
+
+    fn can_win_next(&self) -> bool {
+        todo!("can_win_next not implemented for StackPosition");
+    }
+
+    fn possible_non_loosing_moves(&self) -> u64 {
+        todo!("possible_non_loosing_moves not implemented for StackPosition");
     }
 }
 

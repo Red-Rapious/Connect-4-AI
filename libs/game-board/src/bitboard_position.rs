@@ -98,6 +98,14 @@ impl Position for BitboardPosition {
     fn key(&self) -> u64 {
         self.board + self.mask
     }
+
+    fn can_win_next(&self) -> bool {
+        todo!("can_win_next is not implemented for standard BitboardPosition. Use AnticipatingBitboardPosition instead.")
+    }
+
+    fn possible_non_loosing_moves(&self) -> u64 {
+        todo!("possible_non_loosing_moves is not implemented for standard BitboardPosition. Use AnticipatingBitboardPosition instead.")
+    }
 }
 
 impl From<&SequencePosition> for BitboardPosition {
