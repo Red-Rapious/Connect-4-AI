@@ -1,7 +1,7 @@
 use lib_min_max_solver::MinMaxSolver;
-use lib_alpha_beta_solver::{alpha_beta_solver::AlphaBetaSolver, alpha_beta_with_transposition::AlphaBetaWithTransposition, alpha_beta_with_iterative_deepening::AlphaBetaWithIterativeDeepening, anticipating_alpha_beta::AnticipatingAlphaBeta};
+use lib_alpha_beta_solver::{alpha_beta_solver::AlphaBetaSolver, alpha_beta_with_transposition::AlphaBetaWithTransposition, alpha_beta_with_iterative_deepening::AlphaBetaWithIterativeDeepening, anticipating_alpha_beta::AnticipatingAlphaBeta, alpha_beta_with_ordering::AlphaBetaWithOrdering};
 use lib_benchmark::{Benchmark, TestSet};
-use lib_game_board::{grid_position::GridPosition, bitboard_position::BitboardPosition, Solver, stack_position::StackPosition, WeakSolver, anticipating_bitboard_position::AnticipatingBitboardPosition};
+use lib_game_board::{grid_position::GridPosition, bitboard_position::BitboardPosition, Solver, stack_position::StackPosition, WeakSolver, anticipating_bitboard_position::AnticipatingBitboardPosition, bitboard_position_with_ordering::BitboardPositionWithOrdering};
 
 use std::{io::Write, time::Instant};
 
@@ -12,7 +12,7 @@ fn main() {
         println!("\n\nInvalid arguments list. The argument list should be as follow:");
         println!("\tcargo run solver weak position move_ordering length rating");
         println!("where:");
-        println!("\t- 'solver': the solver type. Choose between 'min_max', 'alpha_beta', 'alpha_beta_with_transposition', 'alpha_beta_with_iterative_deepening', and 'anticipating_alpha_beta'.");
+        println!("\t- 'solver': the solver type. Choose between 'min_max', 'alpha_beta', 'alpha_beta_with_transposition', 'alpha_beta_with_iterative_deepening', 'anticipating_alpha_beta', 'alpha_beta_with_ordering'.");
         println!("\t- 'weak': compute the numbers of move until the end (strong) or only the winner (weak). Choose between 'strong' and 'weak'.");
         println!("\t- 'position': the representation of the board. Choose between 'grid', 'stack' and 'bitboard'.");
         println!("\t- 'move_ordering': the order of the moves. Impactful only for Alpha-Beta-based solvers. Choose between 'left_to_right', and 'center_first'.");
@@ -43,6 +43,7 @@ fn main() {
         "alpha_beta_with_transposition" => AllowedSolver::AlphaBetaWithTransposition(AlphaBetaWithTransposition::new(move_ordering)),
         "alpha_beta_with_iterative_deepening" => AllowedSolver::AlphaBetaWithIterativeDeepening(AlphaBetaWithIterativeDeepening::new(move_ordering)),
         "anticipating_alpha_beta" => AllowedSolver::AnticipatingAlphaBeta(AnticipatingAlphaBeta::new(move_ordering)),
+        "alpha_beta_with_ordering" => AllowedSolver::AlphaBetaWithOrdering(AlphaBetaWithOrdering::new(move_ordering)),
         _ => panic!("Unknown solver name.")
     };
 
@@ -62,7 +63,14 @@ fn main() {
         match position_string.as_str() {
             "grid" => benchmark.benchmark::<GridPosition>(&mut solver),
             "stack" => benchmark.benchmark::<StackPosition>(&mut solver),
-            "bitboard" => if solver_string == "anticipating_alpha_beta" { benchmark.benchmark::<AnticipatingBitboardPosition>(&mut solver) } else { benchmark.benchmark::<BitboardPosition>(&mut solver) },
+            "bitboard" => 
+            if solver_string == "anticipating_alpha_beta" { 
+                benchmark.benchmark::<AnticipatingBitboardPosition>(&mut solver) 
+            } else if solver_string == "alpha_beta_with_ordering" { 
+                benchmark.benchmark::<BitboardPositionWithOrdering>(&mut solver) 
+            } else { 
+                benchmark.benchmark::<BitboardPosition>(&mut solver) 
+            },
             _ => panic!("Unknown position name.")
         }
     } else if weak_string.as_str() == "weak" {
@@ -70,7 +78,14 @@ fn main() {
         match position_string.as_str() {
             "grid" => benchmark.benchmark_weak::<GridPosition>(&mut solver),
             "stack" => benchmark.benchmark_weak::<StackPosition>(&mut solver),
-            "bitboard" => if solver_string == "anticipating_alpha_beta" { benchmark.benchmark_weak::<AnticipatingBitboardPosition>(&mut solver) } else { benchmark.benchmark_weak::<BitboardPosition>(&mut solver) },
+            "bitboard" => 
+            if solver_string == "anticipating_alpha_beta" { 
+                benchmark.benchmark_weak::<AnticipatingBitboardPosition>(&mut solver) 
+            } else if solver_string == "alpha_beta_with_ordering" { 
+                benchmark.benchmark_weak::<BitboardPositionWithOrdering>(&mut solver) 
+            } else { 
+                benchmark.benchmark_weak::<BitboardPosition>(&mut solver) 
+            },
             _ => panic!("Unknown position name.")
         }
     } else {
@@ -87,7 +102,8 @@ enum AllowedSolver {
     AlphaBetaSolver(AlphaBetaSolver),
     AlphaBetaWithTransposition(AlphaBetaWithTransposition),
     AlphaBetaWithIterativeDeepening(AlphaBetaWithIterativeDeepening),
-    AnticipatingAlphaBeta(AnticipatingAlphaBeta)
+    AnticipatingAlphaBeta(AnticipatingAlphaBeta),
+    AlphaBetaWithOrdering(AlphaBetaWithOrdering)
 }
 
 impl Solver for AllowedSolver {
@@ -98,7 +114,8 @@ impl Solver for AllowedSolver {
             AlphaBetaSolver(ref mut solver) => solver.solve(position),
             AlphaBetaWithTransposition(ref mut solver) => solver.solve(position),
             AlphaBetaWithIterativeDeepening(ref mut solver) => solver.solve(position),
-            AnticipatingAlphaBeta(ref mut solver) => solver.solve(position)
+            AnticipatingAlphaBeta(ref mut solver) => solver.solve(position),
+            AlphaBetaWithOrdering(ref mut solver) => solver.solve(position)
         }
     }
 
@@ -109,7 +126,8 @@ impl Solver for AllowedSolver {
             AlphaBetaSolver(solver) => Solver::explored_positions(solver),
             AlphaBetaWithTransposition(solver) => Solver::explored_positions(solver),
             AlphaBetaWithIterativeDeepening(solver) => Solver::explored_positions(solver),
-            AnticipatingAlphaBeta(solver) => Solver::explored_positions(solver)
+            AnticipatingAlphaBeta(solver) => Solver::explored_positions(solver),
+            AlphaBetaWithOrdering(solver) => Solver::explored_positions(solver)
         }
     }
 
@@ -120,7 +138,8 @@ impl Solver for AllowedSolver {
             AlphaBetaSolver(ref mut solver) => Solver::explored_positions(solver),
             AlphaBetaWithTransposition(ref mut solver) => Solver::explored_positions(solver),
             AlphaBetaWithIterativeDeepening(ref mut solver) => Solver::explored_positions(solver),
-            AnticipatingAlphaBeta(ref mut solver) => Solver::explored_positions(solver)
+            AnticipatingAlphaBeta(ref mut solver) => Solver::explored_positions(solver),
+            &mut AlphaBetaWithOrdering(ref mut solver) => Solver::explored_positions(solver)
         };
     }
 }
@@ -133,7 +152,8 @@ impl WeakSolver for AllowedSolver {
             AlphaBetaSolver(ref mut solver) => solver.weak_solve(position),
             AlphaBetaWithTransposition(ref mut solver) => solver.weak_solve(position),
             AlphaBetaWithIterativeDeepening(ref mut solver) => solver.weak_solve(position),
-            AnticipatingAlphaBeta(ref mut solver) => solver.weak_solve(position)
+            AnticipatingAlphaBeta(ref mut solver) => solver.weak_solve(position),
+            AlphaBetaWithOrdering(ref mut solver) => solver.weak_solve(position)
         }
     }
 
@@ -144,7 +164,8 @@ impl WeakSolver for AllowedSolver {
             AlphaBetaSolver(solver) => WeakSolver::explored_positions(solver),
             AlphaBetaWithTransposition(solver) => WeakSolver::explored_positions(solver),
             AlphaBetaWithIterativeDeepening(solver) => WeakSolver::explored_positions(solver),
-            AnticipatingAlphaBeta(solver) => WeakSolver::explored_positions(solver)
+            AnticipatingAlphaBeta(solver) => WeakSolver::explored_positions(solver),
+            AlphaBetaWithOrdering(solver) => WeakSolver::explored_positions(solver)
         }
     }
 
@@ -155,7 +176,8 @@ impl WeakSolver for AllowedSolver {
             AlphaBetaSolver(ref mut solver) => WeakSolver::reset_explored_positions(solver),
             AlphaBetaWithTransposition(ref mut solver) => WeakSolver::reset_explored_positions(solver),
             AlphaBetaWithIterativeDeepening(ref mut solver) => WeakSolver::reset_explored_positions(solver),
-            AnticipatingAlphaBeta(ref mut solver) => WeakSolver::reset_explored_positions(solver)
+            AnticipatingAlphaBeta(ref mut solver) => WeakSolver::reset_explored_positions(solver),
+            &mut AlphaBetaWithOrdering(ref mut solver) => WeakSolver::reset_explored_positions(solver)
         }
     }
 }

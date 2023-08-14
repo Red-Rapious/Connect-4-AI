@@ -48,15 +48,26 @@ I am using [Pascal Pons's test sets](http://blog.gamesolver.org/solving-connect-
 | L3 R1    | Weak   | Center-first  | `BitboardPosition`      | 53μs                  | 113                       |
 | L2 R1    | Weak   | Center-first  | `BitboardPosition`      | 273ms                 | 714 680                   |
 
-### Loosing move anticipation *(with Alpha-Beta, Bitboard, Transposition table, Iterative deepening)*
-| Test Set  | Type   | Move order    | Position representation             | Execution time (mean) | Explored positions (mean) |
-| --------- | ------ | ------------- | ----------------------------------- | --------------------- | ------------------------- |
-| L3 R1     | Strong | Center-first  | `AnticipatingBitboardPosition`      | 60μs                  | 57 122                    |
-| L2 R1     | Strong | Center-first  | `AnticipatingBitboardPosition`      | 3.3ms                 | 3 934 303                 |
-| **L2 R2** | Strong | Center-first  | `AnticipatingBitboardPosition`      | 217ms                 | 301 901 402               |
-| L3 R1     | Weak   | Center-first  | `AnticipatingBitboardPosition`      | 25μs                  | 44                        |
-| L2 R1     | Weak   | Center-first  | `AnticipatingBitboardPosition`      | 7.4ms                 | 19 534                    |
-| **L2 R2** | Weak   | Center-first  | `AnticipatingBitboardPosition`      | 128ms                 | 339 753                   |
+### Loosing moves anticipation *(with Alpha-Beta, Bitboard, Transposition table, Iterative deepening)*
+| Test Set  | Type   | Move order    | Position representation        | Execution time (mean) | Explored positions (mean) |
+| --------- | ------ | ------------- | ------------------------------ | --------------------- | ------------------------- |
+| L3 R1     | Strong | Center-first  | `AnticipatingBitboardPosition` | 60μs                  | 57 122                    |
+| L2 R1     | Strong | Center-first  | `AnticipatingBitboardPosition` | 3.3ms                 | 3 934 303                 |
+| **L2 R2** | Strong | Center-first  | `AnticipatingBitboardPosition` | 217ms                 | 301 901 402               |
+| L3 R1     | Weak   | Center-first  | `AnticipatingBitboardPosition` | 25μs                  | 44                        |
+| L2 R1     | Weak   | Center-first  | `AnticipatingBitboardPosition` | 7.4ms                 | 19 534                    |
+| **L2 R2** | Weak   | Center-first  | `AnticipatingBitboardPosition` | 128ms                 | 339 753                   |
+
+### Moves ordered by score function *(with Alpha-Beta, Bitboard, Transposition table, Iterative deepening, Loosing moves anticipation)*
+| Test Set | Type   | Move order   | Position representation        | Execution time (mean) | Explored positions (mean) |
+| -------- | ------ | ------------ | ------------------------------ | --------------------- | ------------------------- |
+| L3 R1    | Strong | Score-based  | `BitboardPositionWithOrdering` | 48μs                  | 27 951                    |
+| L2 R1    | Strong | Score-based  | `BitboardPositionWithOrdering` | 394ms                 | 244 402                   |
+| L1 R1    | Strong | Score-based  | `BitboardPositionWithOrdering` | 2.7ms                 | 2 097 468                 |
+| L3 R1    | Weak   | Score-based  | `BitboardPositionWithOrdering` | 31μs                  | 31                        |
+| L2 R1    | Weak   | Score-based  | `BitboardPositionWithOrdering` | 505μs                 | 597                       |
+| L2 R2    | Weak   | Score-based  | `BitboardPositionWithOrdering` | 20ms                  | 24 228                    |
+| L1 R1    | Weak   | Score-based  | `BitboardPositionWithOrdering` | 23ms                  | 27 813                    |
 
 
 ## Workspace description
@@ -71,6 +82,7 @@ I am using [Pascal Pons's test sets](http://blog.gamesolver.org/solving-connect-
   - [Transposition table](libs/alpha-beta-solver/src/alpha_beta_with_transposition_table.rs): uses a Transposition table to save previously explored positions. Increases both memory usage but decreases execution time.
   - [Iterative deepening](libs/alpha-beta-solver/src/alpha_beta_with_iterative_deepening.rs): uses a dichotomic approach to progressively increase the depth of search. The possible range for the score is narrowed using the Null Window Search method.
   - [Loosing moves anticipation](libs/alpha-beta-solver/src/anticipating_alpha_beta.rs): uses optimized alignement checking from the Bitboard to efficiently predict short-term winning outcome. If the opponent has a winning move, we are forced to play against it. This allows to considerably reduce the search tree.
+  - [Score-based move ordering](libs/alpha-beta-solver/src/alpha_beta_with_ordering.rs): each move is given a score using population count. The moves are then sorted using insertion sort, and recursively computed by decreasing score, to reduce the number of explored positions.
 
 
 ## Running
@@ -91,7 +103,7 @@ The general arguments list goes as follows:
 $ cargo run solver weak position move_ordering L R
 ```
 With:
-- `solver`: the solver type. Choose between `min_max`, `alpha_beta`, `alpha_beta_with_transposition`, `alpha_beta_with_iterative_deepening`, and `anticipating_alpha_beta`.
+- `solver`: the solver type. Choose between `min_max`, `alpha_beta`, `alpha_beta_with_transposition`, `alpha_beta_with_iterative_deepening`,  `anticipating_alpha_beta`, and `alpha_beta_with_ordering`.
 - `weak`: compute the numbers of move until the end (strong) or only the winner (weak). Choose between `strong` and `weak`.
 - `position`: the representation of the board. Choose between `grid`, `stack` and `bitboard`.
 - `move_ordering`: the order of the moves. Impactful only for Alpha-Beta-based solvers. Choose between `left_to_right`, and `center_first`.

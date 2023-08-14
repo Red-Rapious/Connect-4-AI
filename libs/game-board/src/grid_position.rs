@@ -177,6 +177,14 @@ impl Position for GridPosition {
     fn possible_non_loosing_moves(&self) -> u64 {
         todo!("possible_non_loosing_moves not implemented for GridPosition");
     }
+
+    fn move_score(&self, _move_bit: u64) -> usize {
+        todo!("move_score not implemented for GridPosition")
+    }
+
+    fn play_move(&mut self, _move_bit: u64) {
+        todo!("play_move not implemented for GridPosition")
+    }
 }
 
 impl From<&SequencePosition> for GridPosition {

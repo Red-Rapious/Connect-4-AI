@@ -1,7 +1,7 @@
 use crate::{*, sequence_position::SequencePosition};
 
 #[derive(Debug, PartialEq, Clone)]
-pub struct AnticipatingBitboardPosition {
+pub struct BitboardPositionWithOrdering {
     player_turn: Cell,
     width: usize,
     height: usize,
@@ -12,10 +12,10 @@ pub struct AnticipatingBitboardPosition {
     board_mask: u64
 }
 
-impl AnticipatingBitboardPosition {
+impl BitboardPositionWithOrdering {
     pub fn new(width: usize, height: usize) -> Self {
         assert!(width*(height+1) <= 64, "The board does not fit inside a 64bits bitboard.");
-        let bottom_mask = AnticipatingBitboardPosition::bottom(width, height);
+        let bottom_mask = BitboardPositionWithOrdering::bottom(width, height);
         Self { 
             player_turn: FIRST_PLAYER, 
             width, height, 
@@ -37,7 +37,7 @@ impl AnticipatingBitboardPosition {
         if width == 0 {
             0
         } else {
-            AnticipatingBitboardPosition::bottom(width-1, height) | 1 << (width-1)*(height+1)
+            BitboardPositionWithOrdering::bottom(width-1, height) | 1 << (width-1)*(height+1)
         }
     }
 
@@ -88,9 +88,18 @@ impl AnticipatingBitboardPosition {
 
         r & (self.board_mask ^ mask)
     }
+
+    fn population_count(&self, mut m: u64) -> usize {
+        let mut c = 0;
+        while m != 0 {
+            m &= m - 1;
+            c += 1;
+        }
+        c
+    }
 }
 
-impl Position for AnticipatingBitboardPosition {
+impl Position for BitboardPositionWithOrdering {
     fn width(&self) -> usize {
         self.width
     }
@@ -153,18 +162,22 @@ impl Position for AnticipatingBitboardPosition {
         possible_mask & !(opponent_win >> 1)
     }
 
-    fn move_score(&self, _move_bit: u64) -> usize {
-        todo!("move_score not implemented for AnticipatingBitboardPosition.. Use BitboardPositionWithOrdering instead.")
+    fn move_score(&self, move_bit: u64) -> usize {
+        self.population_count(self.compute_winning_positions(self.board | move_bit, self.mask))
     }
 
-    fn play_move(&mut self, _move_bit: u64) {
-        todo!("play_move not implemented for AnticipatingBitboardPosition. Use BitboardPositionWithOrdering instead.")
+    fn play_move(&mut self, move_bit: u64) {
+        self.nb_moves += 1;
+        self.player_turn = self.player_turn.swap_turn();
+        
+        self.board ^= self.mask;
+        self.mask |= move_bit;
     }
 }
 
-impl From<&SequencePosition> for AnticipatingBitboardPosition {
+impl From<&SequencePosition> for BitboardPositionWithOrdering {
     fn from(sequence_position: &SequencePosition) -> Self {
-        let mut grid_position = AnticipatingBitboardPosition::new(7, 6);        
+        let mut grid_position = BitboardPositionWithOrdering::new(7, 6);        
         let mut player = FIRST_PLAYER;
 
         for column in sequence_position.sequence() {
@@ -177,7 +190,7 @@ impl From<&SequencePosition> for AnticipatingBitboardPosition {
 }
 
 #[cfg(test)]
-mod anticipating_bitboard_position_tests {
+mod bitboard_position_with_ordering_tests {
     use super::*;
 
     mod can_play {
@@ -185,7 +198,7 @@ mod anticipating_bitboard_position_tests {
 
         #[test]
         fn empty_position() {
-            let position = AnticipatingBitboardPosition::new(7, 6);
+            let position = BitboardPositionWithOrdering::new(7, 6);
 
             for column in 0..7 {
                 assert!(position.can_play(column), "Cannot play in column {} while one should be able to.", column);
@@ -194,7 +207,7 @@ mod anticipating_bitboard_position_tests {
 
         #[test]
         fn full_position() {
-            let mut position = AnticipatingBitboardPosition::new(7, 6);
+            let mut position = BitboardPositionWithOrdering::new(7, 6);
 
             for column in 0..7 {
                 for _ in 0..6 {
@@ -216,7 +229,7 @@ mod anticipating_bitboard_position_tests {
 
         #[test]
         fn test_vertical() {
-            let mut position = AnticipatingBitboardPosition::new(7, 6);
+            let mut position = BitboardPositionWithOrdering::new(7, 6);
             for _ in 0..3 {
                 assert!(!position.is_winning_move(0));
                 position.play(0); // red player play in 0
@@ -229,7 +242,7 @@ mod anticipating_bitboard_position_tests {
 
         #[test]
         fn test_horizontal() {
-            let mut position = AnticipatingBitboardPosition::new(7, 6);
+            let mut position = BitboardPositionWithOrdering::new(7, 6);
             for column in 0..3 {
                 assert!(!position.is_winning_move(column));
                 // both player play on the same column
@@ -247,16 +260,16 @@ mod anticipating_bitboard_position_tests {
 
         #[test]
         fn sequence_empty() {
-            let expected_result = AnticipatingBitboardPosition::new(7, 6);
+            let expected_result = BitboardPositionWithOrdering::new(7, 6);
             assert_eq!(
-                AnticipatingBitboardPosition::from(&SequencePosition::from(&"".to_string())),
+                BitboardPositionWithOrdering::from(&SequencePosition::from(&"".to_string())),
                 expected_result
             )
         } 
 
         #[test]
         fn sequence_line1() {
-            let mut expected_result = AnticipatingBitboardPosition::new(7, 6);
+            let mut expected_result = BitboardPositionWithOrdering::new(7, 6);
             expected_result.play(0);
             expected_result.play(1);
             expected_result.play(2);
@@ -266,7 +279,7 @@ mod anticipating_bitboard_position_tests {
             expected_result.play(6);
 
             assert_eq!(
-                AnticipatingBitboardPosition::from(&SequencePosition::from(&"1234567".to_string())),
+                BitboardPositionWithOrdering::from(&SequencePosition::from(&"1234567".to_string())),
                 expected_result
             )
         } 

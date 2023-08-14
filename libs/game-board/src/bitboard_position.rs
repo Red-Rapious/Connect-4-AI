@@ -106,6 +106,14 @@ impl Position for BitboardPosition {
     fn possible_non_loosing_moves(&self) -> u64 {
         todo!("possible_non_loosing_moves is not implemented for standard BitboardPosition. Use AnticipatingBitboardPosition instead.")
     }
+
+    fn move_score(&self, _move_bit: u64) -> usize {
+        todo!("move_score not implemented for BitboardPosition.")
+    }
+
+    fn play_move(&mut self, _move_bit: u64) {
+        todo!("play_move. not implemented for BitboardPosition.")
+    }
 }
 
 impl From<&SequencePosition> for BitboardPosition {

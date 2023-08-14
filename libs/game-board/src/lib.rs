@@ -5,6 +5,7 @@ pub mod sequence_position;
 pub mod stack_position;
 pub mod bitboard_position;
 pub mod anticipating_bitboard_position;
+pub mod bitboard_position_with_ordering;
 
 const FIRST_PLAYER: Cell = Cell::Red;
 
@@ -19,9 +20,14 @@ pub trait Position {
     fn nb_moves(&self) -> usize;
     fn from_seq(sequence: &SequencePosition) -> Self;
 
+    // AnticipatingBitboardPosition
     fn key(&self) -> u64;
     fn can_win_next(&self) -> bool;
     fn possible_non_loosing_moves(&self) -> u64;
+
+    // BitboardPositionWithOrdering
+    fn move_score(&self, move_bit: u64) -> usize;
+    fn play_move(&mut self, move_bit: u64);
 }
 
 #[derive(Debug, Clone, PartialEq, Copy)]
