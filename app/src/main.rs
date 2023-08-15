@@ -24,7 +24,7 @@ fn ask_position() -> usize {
         if 1 <= column && column <= 7 { 
             break; 
         } else {
-            println!("Please enter a number that is between 1 and 7.\n");
+            println!("Please enter a column number that is between 1 and 7.\n");
         }
     }
 

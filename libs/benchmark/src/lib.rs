@@ -17,7 +17,7 @@ use lib_game_board::{
 };
 use crate::{benchmark::Benchmark, test_set::TestSet, statistics::Statistics};
 
-use std::{io::Write, time::Instant};
+use std::time::Instant;
 
 pub mod statistics;
 pub mod test_set;
