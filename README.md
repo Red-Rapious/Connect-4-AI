@@ -127,7 +127,7 @@ The list of arguments goes as follows:
 $ cargo run benchmark [solver] [weak] [position] [move_ordering] [L] [R]
 ```
 With:
-- `solver`: the solver type. Choose between `min_max`, `alpha_beta`, `alpha_beta_with_transposition`, `alpha_beta_with_iterative_deepening`,  `anticipating_alpha_beta`, `alpha_beta_with_ordering`, and `alpha_beta_with_optimised_transposition`.
+- `solver`: the solver type. Choose between `min_max`, `alpha_beta`, `alpha_beta_with_transposition`, `alpha_beta_with_iterative_deepening`,  `anticipating_alpha_beta`, `alpha_beta_with_ordering`, `alpha_beta_with_optimised_transposition`, and `alpha_beta_with_lower_bound_transposition`.
 - `weak`: compute the numbers of move until the end (strong) or only the winner (weak). Choose between `strong` and `weak`.
 - `position`: the representation of the board. Choose between `grid`, `stack` and `bitboard`.
 - `move_ordering`: the order of the moves. Impactful only for Alpha-Beta-based solvers. Choose between `left_to_right`, and `center_first`.
