@@ -9,3 +9,4 @@ edition = "2021"
 lib-game-board = { path = "../game-board" }
 lib-alpha-beta-solver = { path = "../alpha-beta-solver" }
 lib-min-max-solver = { path = "../min-max-solver" }
+progress_bar = "*"

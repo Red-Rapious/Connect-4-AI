@@ -51,8 +51,7 @@ pub fn run_benchmark(solver_string: &str, weak_string: &str, position_string: &s
     println!("\t- Solving type: {}", weak_string);
     println!("\t- Move ordering: {}", move_ordering_string);
     println!("\t- Test set: L{} R{}", length, rating);
-    print!("\nBeginning of the benchmark... ");
-    std::io::stdout().flush().unwrap();
+    println!("");
 
     let now = Instant::now();
 
@@ -90,7 +89,7 @@ pub fn run_benchmark(solver_string: &str, weak_string: &str, position_string: &s
         panic!("Unknown weak/strong argument.")
     };
 
-    println!("done in {:?}.\n", now.elapsed());
+    println!("Benchmark done in {:?}.\n", now.elapsed());
 
     println!("Benchmark results:\n   {}", stats[0]);
 }
