@@ -18,6 +18,10 @@ impl GridPosition {
         Self { player_turn: FIRST_PLAYER, width, height, grid, nb_moves: 0 }
     }
 
+    pub fn grid(&self) -> &Vec<Vec<Cell>> {
+        &self.grid
+    }
+
     /*fn is_align(&self, line: usize, column: usize, incrementer: (i32, i32)) -> Cell {
         let (i0, i1) = incrementer;
         if self.grid[line][column] == self.grid[(line as i32 + i0) as usize][(column as i32 + i1) as usize] 

@@ -1,279 +1,200 @@
-use std::fs::File;
-use std::io::{BufReader, BufRead};
-use std::time::{Duration, Instant};
+use lib_min_max_solver::MinMaxSolver;
+use lib_alpha_beta_solver::{
+    alpha_beta_solver::AlphaBetaSolver, 
+    alpha_beta_with_transposition::AlphaBetaWithTransposition, alpha_beta_with_iterative_deepening::AlphaBetaWithIterativeDeepening,
+    anticipating_alpha_beta::AnticipatingAlphaBeta, 
+    alpha_beta_with_ordering::AlphaBetaWithOrdering
+};
+use lib_game_board::{
+    Solver, 
+    WeakSolver, 
+    grid_position::GridPosition, 
+    stack_position::StackPosition, 
+    bitboard_position::BitboardPosition, 
+    anticipating_bitboard_position::AnticipatingBitboardPosition, 
+    bitboard_position_with_ordering::BitboardPositionWithOrdering
+};
+use crate::{benchmark::Benchmark, test_set::TestSet, statistics::Statistics};
 
-use lib_game_board::{Solver, Position, WeakSolver};
-use lib_game_board::sequence_position::SequencePosition;
-use statistics::Statistics;
+use std::{io::Write, time::Instant};
 
 pub mod statistics;
+pub mod test_set;
+pub mod benchmark;
 
-pub struct Benchmark 
-{
-    test_sets: Vec<TestSet>
-}
 
-impl Benchmark
-{
-    pub fn new(test_sets: Vec<TestSet>) -> Self {
-        Self { test_sets }
+pub fn run_benchmark(args: Vec<String>) {
+    // /target/... solver weak position move_ordering L R
+    if args.len() != 1+6 {
+        println!("\n\nInvalid arguments list. The argument list should be as follow:");
+        println!("\tcargo run solver weak position move_ordering length rating");
+        println!("where:");
+        println!("\t- 'solver': the solver type. Choose between 'min_max', 'alpha_beta', 'alpha_beta_with_transposition', 'alpha_beta_with_iterative_deepening', 'anticipating_alpha_beta', 'alpha_beta_with_ordering'.");
+        println!("\t- 'weak': compute the numbers of move until the end (strong) or only the winner (weak). Choose between 'strong' and 'weak'.");
+        println!("\t- 'position': the representation of the board. Choose between 'grid', 'stack' and 'bitboard'.");
+        println!("\t- 'move_ordering': the order of the moves. Impactful only for Alpha-Beta-based solvers. Choose between 'left_to_right', and 'center_first'.");
+        println!("\t- 'L': the overall state of the game in the test dataset. Choose between 1, 2 and 3, where 3 is the easiest.");
+        println!("\t- 'R': the overall difficulty of the game in the test dataset. Choose between 1, 2 and 3, where 3 is the easiest. Some ratings aren't available depending on L.");
+        return;
     }
 
-    pub fn benchmark<P: Position + Clone>(&self, solver: &mut impl Solver) -> Vec<Statistics> {
-        self.test_sets
-            .iter()
-            .map(|test| test.test_solver::<P>(solver))
-            .collect()
-    }
+    let solver_string = &args[1];
+    let weak_string = &args[2];
+    let position_string = &args[3];
+    let move_ordering_string = &args[4];
+    let length: usize = args[5].trim().parse().expect("5th argument, 'length', is not a number.");
+    let rating: usize = args[6].trim().parse().expect("6th argument, 'rating', is not a number.");
 
-    pub fn benchmark_weak<P: Position + Clone>(&self, solver: &mut impl WeakSolver) -> Vec<Statistics> {
-        self.test_sets
-            .iter()
-            .map(|test| test.test_weak_solver::<P>(solver))
-            .collect()
-    }
-}
+    let move_ordering = match move_ordering_string.as_str() {
+        "left_to_right" => (0..7).collect(),
+        "center_first" => vec![3, 4, 2, 5, 1, 6, 0],
+        _ => { assert!(solver_string.as_str() == "min_max", "Unknown move ordering."); vec![] }
+    };
 
-pub struct TestSet
-{
-    games_moves: Vec<(SequencePosition, i32)>
-}
+    let test_sets = vec![TestSet::new(length, rating, &"libs/benchmark", None)];
+    let benchmark = Benchmark::new(test_sets);
 
-impl TestSet
-{
-    pub fn new(length: usize, rating: usize, datasets_path: &str, games_number: Option<usize>) -> Self 
-    {
-        assert!(1 <= rating && rating <= 3);
-        assert!(1 <= length && length <= 3);
-        if length == 3 {
-            assert!(rating == 1);
+    let mut solver: AllowedSolver = match solver_string.as_str() {
+        "min_max" => AllowedSolver::MinMaxSolver(MinMaxSolver::new()),
+        "alpha_beta" => AllowedSolver::AlphaBetaSolver(AlphaBetaSolver::new(move_ordering)),
+        "alpha_beta_with_transposition" => AllowedSolver::AlphaBetaWithTransposition(AlphaBetaWithTransposition::new(move_ordering)),
+        "alpha_beta_with_iterative_deepening" => AllowedSolver::AlphaBetaWithIterativeDeepening(AlphaBetaWithIterativeDeepening::new(move_ordering)),
+        "anticipating_alpha_beta" => AllowedSolver::AnticipatingAlphaBeta(AnticipatingAlphaBeta::new(move_ordering)),
+        "alpha_beta_with_ordering" => AllowedSolver::AlphaBetaWithOrdering(AlphaBetaWithOrdering::new(move_ordering)),
+        _ => panic!("Unknown solver name.")
+    };
+
+
+    println!("\n\nSelected arguments:");
+    println!("\t- Solver: {}", solver_string);
+    println!("\t- Solving type: {}", weak_string);
+    println!("\t- Move ordering: {}", move_ordering_string);
+    println!("\t- Test set: L{} R{}", length, rating);
+    print!("\nBeginning of the benchmark... ");
+    std::io::stdout().flush().unwrap();
+
+    let now = Instant::now();
+
+    let stats: Vec<Statistics> = 
+    if weak_string.as_str() == "strong" { 
+        match position_string.as_str() {
+            "grid" => benchmark.benchmark::<GridPosition>(&mut solver),
+            "stack" => benchmark.benchmark::<StackPosition>(&mut solver),
+            "bitboard" => 
+            if solver_string == "anticipating_alpha_beta" { 
+                benchmark.benchmark::<AnticipatingBitboardPosition>(&mut solver) 
+            } else if solver_string == "alpha_beta_with_ordering" { 
+                benchmark.benchmark::<BitboardPositionWithOrdering>(&mut solver) 
+            } else { 
+                benchmark.benchmark::<BitboardPosition>(&mut solver) 
+            },
+            _ => panic!("Unknown position name.")
         }
-        if length == 2 {
-            assert!(rating != 3);
+    } else if weak_string.as_str() == "weak" {
+        assert_ne!(solver_string, "min_max", "MinMax solver does not implement weak solving.");
+        match position_string.as_str() {
+            "grid" => benchmark.benchmark_weak::<GridPosition>(&mut solver),
+            "stack" => benchmark.benchmark_weak::<StackPosition>(&mut solver),
+            "bitboard" => 
+            if solver_string == "anticipating_alpha_beta" { 
+                benchmark.benchmark_weak::<AnticipatingBitboardPosition>(&mut solver) 
+            } else if solver_string == "alpha_beta_with_ordering" { 
+                benchmark.benchmark_weak::<BitboardPositionWithOrdering>(&mut solver) 
+            } else { 
+                benchmark.benchmark_weak::<BitboardPosition>(&mut solver) 
+            },
+            _ => panic!("Unknown position name.")
         }
+    } else {
+        panic!("Unknown weak/strong argument.")
+    };
 
-        let games_moves = TestSet::load_test(length, rating, datasets_path);
-        let games_moves = match games_number {
-            None => games_moves,
-            Some(n) => games_moves.into_iter().take(n).collect()
+    println!("done in {:?}.\n", now.elapsed());
+
+    println!("Benchmark results:\n   {}", stats[0]);
+}
+
+enum AllowedSolver {
+    MinMaxSolver(MinMaxSolver),
+    AlphaBetaSolver(AlphaBetaSolver),
+    AlphaBetaWithTransposition(AlphaBetaWithTransposition),
+    AlphaBetaWithIterativeDeepening(AlphaBetaWithIterativeDeepening),
+    AnticipatingAlphaBeta(AnticipatingAlphaBeta),
+    AlphaBetaWithOrdering(AlphaBetaWithOrdering)
+}
+
+impl Solver for AllowedSolver {
+    fn solve(&mut self, position: &(impl lib_game_board::Position + Clone)) -> i32 {
+        use AllowedSolver::*;
+        match self {
+            MinMaxSolver(ref mut solver) => solver.solve(position),
+            AlphaBetaSolver(ref mut solver) => solver.solve(position),
+            AlphaBetaWithTransposition(ref mut solver) => solver.solve(position),
+            AlphaBetaWithIterativeDeepening(ref mut solver) => solver.solve(position),
+            AnticipatingAlphaBeta(ref mut solver) => solver.solve(position),
+            AlphaBetaWithOrdering(ref mut solver) => solver.solve(position)
+        }
+    }
+
+    fn explored_positions(&self) -> usize {
+        use AllowedSolver::*;
+        match self {
+            MinMaxSolver(solver) => Solver::explored_positions(solver),
+            AlphaBetaSolver(solver) => Solver::explored_positions(solver),
+            AlphaBetaWithTransposition(solver) => Solver::explored_positions(solver),
+            AlphaBetaWithIterativeDeepening(solver) => Solver::explored_positions(solver),
+            AnticipatingAlphaBeta(solver) => Solver::explored_positions(solver),
+            AlphaBetaWithOrdering(solver) => Solver::explored_positions(solver)
+        }
+    }
+
+    fn reset_explored_positions(&mut self) {
+        use AllowedSolver::*;
+        match self {
+            MinMaxSolver(ref mut solver) => Solver::explored_positions(solver),
+            AlphaBetaSolver(ref mut solver) => Solver::explored_positions(solver),
+            AlphaBetaWithTransposition(ref mut solver) => Solver::explored_positions(solver),
+            AlphaBetaWithIterativeDeepening(ref mut solver) => Solver::explored_positions(solver),
+            AnticipatingAlphaBeta(ref mut solver) => Solver::explored_positions(solver),
+            &mut AlphaBetaWithOrdering(ref mut solver) => Solver::explored_positions(solver)
         };
-
-        Self { games_moves }
-    }
-
-    fn load_test(length: usize, rating: usize, datasets_path: &str) -> Vec<(SequencePosition, i32)> {
-        //let file_path = format!("./datasets/Test_L{}_R{}", length, rating);
-        let file_path = format!("{}/datasets/Test_L{}_R{}", datasets_path, length, rating);
-        let file = File::open(&file_path).expect(format!("Unable to read file: {}", file_path).as_str());
-        let reader = BufReader::new(file);
-        let mut games_moves = Vec::with_capacity(1_000);
-
-        for line in reader.lines() {
-            let line_content = line.expect("Unable to read line");
-            let elements: Vec<String> = line_content
-                .split_whitespace()
-                .map(str::parse)
-                .collect::<Result<_, _>>()
-                .expect("Unable to parse line.");
-
-            assert_eq!(elements.len(), 2);
-
-            let position = SequencePosition::from(&elements[0]);
-            let score: i32 = elements[1].parse().expect("Unable to parse score.");
-
-            games_moves.push((position, score));
-        }
-        
-        games_moves
-    }
-
-    pub fn games_moves(&self) -> &Vec<(SequencePosition, i32)> {
-        &self.games_moves
-    }
-
-    pub fn test_solver<P: Position + Clone>(&self, solver: &mut impl Solver) -> Statistics {
-        let mut execution_times: Vec<Duration> = Vec::with_capacity(self.games_moves.len());
-        let mut explored_positions_nb: Vec<usize> = Vec::with_capacity(self.games_moves.len());
-
-        let results: Vec<bool> = self.games_moves
-            .iter()
-            .map(|(position, expected_score)| {
-                solver.reset_explored_positions();
-
-                let now = Instant::now();
-                let solved_score = solver.solve(&mut P::from_seq(position));
-                execution_times.push(now.elapsed());
-
-                let explored_positions = solver.explored_positions();
-                explored_positions_nb.push(explored_positions);
-
-
-                if solved_score == *expected_score {
-                    true
-                } else {
-                    println!("Test failed: expected score was {}, but solved score is {}.", *expected_score, solved_score);
-                    false
-                }
-            })
-            .collect();
-
-
-        Statistics::new(results, execution_times, explored_positions_nb)
-    }
-
-    pub fn test_weak_solver<P: Position + Clone>(&self, solver: &mut impl WeakSolver) -> Statistics {
-        let mut execution_times: Vec<Duration> = Vec::with_capacity(self.games_moves.len());
-        let mut explored_positions_nb: Vec<usize> = Vec::with_capacity(self.games_moves.len());
-
-        let results: Vec<bool> = self.games_moves
-            .iter()
-            .map(|(position, expected_score)| {
-                let expected_score = 
-                    if *expected_score == 0 { 0 } 
-                    else if *expected_score < 0 { -1 } 
-                    else { 1 };
-                    
-                solver.reset_explored_positions();
-
-                let now = Instant::now();
-                let solved_score = solver.weak_solve(&mut P::from_seq(position));
-                execution_times.push(now.elapsed());
-
-                let solved_score = 
-                    if solved_score == 0 { 0 } 
-                    else if solved_score < 0 { -1 } 
-                    else { 1 };
-
-                let explored_positions = solver.explored_positions();
-                explored_positions_nb.push(explored_positions);
-
-
-                if solved_score == expected_score {
-                    true
-                } else {
-                    println!("Test failed: expected score was {}, but solved score is {}.", expected_score, solved_score);
-                    false
-                }
-            })
-            .collect();
-
-
-        Statistics::new(results, execution_times, explored_positions_nb)
     }
 }
 
-#[cfg(test)]
-mod benchmark_tests {
-    use super::*;
-    use lib_game_board::grid_position::GridPosition;
-
-    pub struct TestSolver {
-        value: i32
-    }
-    impl TestSolver {
-        pub fn new(value: i32) -> Self {
-            Self { value }
-        }
-    }
-    impl Solver for TestSolver {
-        fn solve(&mut self, _position: &impl Position) -> i32{
-            self.value
-        }
-
-        fn explored_positions(&self) -> usize {
-            0
-        }
-
-        fn reset_explored_positions(&mut self) {
-            ()
-        }
-    }
-    impl WeakSolver for TestSolver {
-        fn weak_solve(&mut self, _position: &impl Position) -> i32{
-            self.value
-        }
-
-        fn explored_positions(&self) -> usize {
-            0
-        }
-
-        fn reset_explored_positions(&mut self) {
-            ()
+impl WeakSolver for AllowedSolver {
+    fn weak_solve(&mut self, position: &(impl lib_game_board::Position + Clone)) -> i32 {
+        use AllowedSolver::*;
+        match self {
+            MinMaxSolver(_) => panic!("MinMaxSolver does not implement WeakSolver trait."),
+            AlphaBetaSolver(ref mut solver) => solver.weak_solve(position),
+            AlphaBetaWithTransposition(ref mut solver) => solver.weak_solve(position),
+            AlphaBetaWithIterativeDeepening(ref mut solver) => solver.weak_solve(position),
+            AnticipatingAlphaBeta(ref mut solver) => solver.weak_solve(position),
+            AlphaBetaWithOrdering(ref mut solver) => solver.weak_solve(position)
         }
     }
 
-    mod load {
-        use super::*;
-
-        #[test]
-        #[allow(non_snake_case)]
-        fn load_L1_R1() {
-            let test_set = TestSet::new(1, 1, &".", None);
-            
-            assert_eq!(
-                test_set.games_moves()[0],
-                (SequencePosition::from(&"32164625".to_string()), 11)
-            )
+    fn explored_positions(&self) -> usize {
+        use AllowedSolver::*;
+        match self {
+            MinMaxSolver(_) => panic!("MinMaxSolver does not implement WeakSolver trait."),
+            AlphaBetaSolver(solver) => WeakSolver::explored_positions(solver),
+            AlphaBetaWithTransposition(solver) => WeakSolver::explored_positions(solver),
+            AlphaBetaWithIterativeDeepening(solver) => WeakSolver::explored_positions(solver),
+            AnticipatingAlphaBeta(solver) => WeakSolver::explored_positions(solver),
+            AlphaBetaWithOrdering(solver) => WeakSolver::explored_positions(solver)
         }
     }
 
-    mod test_solver {
-        use super::*;
-
-        #[test]
-        fn test_test_solver_0() {
-            let test_set = TestSet::new(1, 1, &".", None);
-            let mut solver = TestSolver::new(0);
-
-            assert_eq!(
-                test_set.test_solver::<GridPosition>(&mut solver).results(),
-                &vec![false; test_set.games_moves.len()]
-            )
-        }
-
-        #[test]
-        fn test_test_solver_11() {
-            let test_set = TestSet::new(1, 1, &".", None);
-            let mut solver = TestSolver::new(11);
-
-            let correctly_solved: usize = test_set
-                .test_solver::<GridPosition>(&mut solver)
-                .results()
-                .iter()
-                .map(|b| if *b { 1 } else { 0 })
-                .sum();
-
-            assert_eq!(correctly_solved, 104);
-        }
-    }
-
-    mod test_weak_solver {
-        use super::*;
-
-        #[test]
-        fn test_test_solver_0() {
-            let test_set = TestSet::new(1, 1, &".", None);
-            let mut solver = TestSolver::new(0);
-
-            assert_eq!(
-                test_set.test_weak_solver::<GridPosition>(&mut solver).results(),
-                &vec![false; test_set.games_moves.len()]
-            )
-        }
-
-        #[test]
-        fn test_test_solver_1() {
-            let test_set = TestSet::new(1, 1, &".", None);
-            let mut solver = TestSolver::new(1);
-
-            let correctly_solved: usize = test_set
-                .test_weak_solver::<GridPosition>(&mut solver)
-                .results()
-                .iter()
-                .map(|b| if *b { 1 } else { 0 })
-                .sum();
-
-            assert_eq!(correctly_solved, 723);
+    fn reset_explored_positions(&mut self) {
+        use AllowedSolver::*;
+        match self {
+            MinMaxSolver(_) => panic!("MinMaxSolver does not implement WeakSolver trait."),
+            AlphaBetaSolver(ref mut solver) => WeakSolver::reset_explored_positions(solver),
+            AlphaBetaWithTransposition(ref mut solver) => WeakSolver::reset_explored_positions(solver),
+            AlphaBetaWithIterativeDeepening(ref mut solver) => WeakSolver::reset_explored_positions(solver),
+            AnticipatingAlphaBeta(ref mut solver) => WeakSolver::reset_explored_positions(solver),
+            &mut AlphaBetaWithOrdering(ref mut solver) => WeakSolver::reset_explored_positions(solver)
         }
     }
 }
