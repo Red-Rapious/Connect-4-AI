@@ -23,38 +23,17 @@ pub mod test_set;
 pub mod benchmark;
 
 
-pub fn run_benchmark(args: Vec<String>) {
-    // /target/... solver weak position move_ordering L R
-    if args.len() != 1+6 {
-        println!("\n\nInvalid arguments list. The argument list should be as follow:");
-        println!("\tcargo run solver weak position move_ordering length rating");
-        println!("where:");
-        println!("\t- 'solver': the solver type. Choose between 'min_max', 'alpha_beta', 'alpha_beta_with_transposition', 'alpha_beta_with_iterative_deepening', 'anticipating_alpha_beta', 'alpha_beta_with_ordering'.");
-        println!("\t- 'weak': compute the numbers of move until the end (strong) or only the winner (weak). Choose between 'strong' and 'weak'.");
-        println!("\t- 'position': the representation of the board. Choose between 'grid', 'stack' and 'bitboard'.");
-        println!("\t- 'move_ordering': the order of the moves. Impactful only for Alpha-Beta-based solvers. Choose between 'left_to_right', and 'center_first'.");
-        println!("\t- 'L': the overall state of the game in the test dataset. Choose between 1, 2 and 3, where 3 is the easiest.");
-        println!("\t- 'R': the overall difficulty of the game in the test dataset. Choose between 1, 2 and 3, where 3 is the easiest. Some ratings aren't available depending on L.");
-        return;
-    }
-
-    let solver_string = &args[1];
-    let weak_string = &args[2];
-    let position_string = &args[3];
-    let move_ordering_string = &args[4];
-    let length: usize = args[5].trim().parse().expect("5th argument, 'length', is not a number.");
-    let rating: usize = args[6].trim().parse().expect("6th argument, 'rating', is not a number.");
-
-    let move_ordering = match move_ordering_string.as_str() {
+pub fn run_benchmark(solver_string: &str, weak_string: &str, position_string: &str, move_ordering_string: &str, length: usize, rating: usize) {
+    let move_ordering = match move_ordering_string {
         "left_to_right" => (0..7).collect(),
         "center_first" => vec![3, 4, 2, 5, 1, 6, 0],
-        _ => { assert!(solver_string.as_str() == "min_max", "Unknown move ordering."); vec![] }
+        _ => { assert!(solver_string == "min_max", "Unknown move ordering."); vec![] }
     };
 
     let test_sets = vec![TestSet::new(length, rating, &"libs/benchmark", None)];
     let benchmark = Benchmark::new(test_sets);
 
-    let mut solver: AllowedSolver = match solver_string.as_str() {
+    let mut solver: AllowedSolver = match solver_string {
         "min_max" => AllowedSolver::MinMaxSolver(MinMaxSolver::new()),
         "alpha_beta" => AllowedSolver::AlphaBetaSolver(AlphaBetaSolver::new(move_ordering)),
         "alpha_beta_with_transposition" => AllowedSolver::AlphaBetaWithTransposition(AlphaBetaWithTransposition::new(move_ordering)),
@@ -76,8 +55,8 @@ pub fn run_benchmark(args: Vec<String>) {
     let now = Instant::now();
 
     let stats: Vec<Statistics> = 
-    if weak_string.as_str() == "strong" { 
-        match position_string.as_str() {
+    if weak_string == "strong" { 
+        match position_string {
             "grid" => benchmark.benchmark::<GridPosition>(&mut solver),
             "stack" => benchmark.benchmark::<StackPosition>(&mut solver),
             "bitboard" => 
@@ -90,9 +69,9 @@ pub fn run_benchmark(args: Vec<String>) {
             },
             _ => panic!("Unknown position name.")
         }
-    } else if weak_string.as_str() == "weak" {
+    } else if weak_string == "weak" {
         assert_ne!(solver_string, "min_max", "MinMax solver does not implement weak solving.");
-        match position_string.as_str() {
+        match position_string {
             "grid" => benchmark.benchmark_weak::<GridPosition>(&mut solver),
             "stack" => benchmark.benchmark_weak::<StackPosition>(&mut solver),
             "bitboard" => 

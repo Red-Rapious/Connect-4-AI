@@ -6,7 +6,4 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-lib-min-max-solver = { path = "../libs/min-max-solver" }
-lib-alpha-beta-solver = { path = "../libs/alpha-beta-solver" }
 lib-benchmark = { path = "../libs/benchmark" }
-lib-game-board = { path = "../libs/game-board" }
