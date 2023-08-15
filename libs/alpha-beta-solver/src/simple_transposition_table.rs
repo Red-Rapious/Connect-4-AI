@@ -1,11 +1,11 @@
 pub const TABLE_SIZE: usize = 10_000_000;
 
 #[derive(Debug)]
-pub struct TranspositionTable {
+pub struct SimpleTranspositionTable {
     table: Vec<TableEntry>
 }
 
-impl TranspositionTable {
+impl SimpleTranspositionTable {
     pub fn new(size: usize) -> Self {
         assert!(size > 0);
         Self { table: vec![TableEntry::default(); size] }
@@ -63,7 +63,7 @@ mod transposition_table_tests {
 
     #[test]
     fn insert_get() {
-        let mut table = TranspositionTable::new(10);
+        let mut table = SimpleTranspositionTable::new(10);
 
         table.insert(42, 21);
         assert_eq!(table.get(42), Some(21));
@@ -71,7 +71,7 @@ mod transposition_table_tests {
 
     #[test]
     fn insert_get_index() {
-        let mut table = TranspositionTable::new(10);
+        let mut table = SimpleTranspositionTable::new(10);
 
         table.insert(10, 21);
         assert_eq!(table.get(0), None);
@@ -79,7 +79,7 @@ mod transposition_table_tests {
 
     #[test]
     fn index_override() {
-        let mut table = TranspositionTable::new(10);
+        let mut table = SimpleTranspositionTable::new(10);
 
         table.insert(10, 21);
         table.insert(20, 22);

@@ -4,4 +4,7 @@ pub mod alpha_beta_with_iterative_deepening;
 pub mod anticipating_alpha_beta;
 pub mod alpha_beta_with_ordering;
 pub mod move_sorter;
-mod transposition_table;
+pub mod alpha_beta_with_optimised_transposition;
+
+mod simple_transposition_table;
+mod optimised_transposition_table;

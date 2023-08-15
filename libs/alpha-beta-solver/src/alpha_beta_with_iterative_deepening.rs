@@ -1,15 +1,15 @@
 use lib_game_board::{Solver, WeakSolver};
-use crate::transposition_table::{TranspositionTable, TABLE_SIZE};
+use crate::simple_transposition_table::{SimpleTranspositionTable, TABLE_SIZE};
 
 pub struct AlphaBetaWithIterativeDeepening {
     move_order: Vec<usize>,
     explored_positions: usize,
-    transposition_table: TranspositionTable
+    transposition_table: SimpleTranspositionTable
 }
 
 impl AlphaBetaWithIterativeDeepening {
     pub fn new(move_order: Vec<usize>) -> Self {
-        Self { move_order, explored_positions: 0, transposition_table: TranspositionTable::new(TABLE_SIZE) }
+        Self { move_order, explored_positions: 0, transposition_table: SimpleTranspositionTable::new(TABLE_SIZE) }
     }
 
     fn solve_range(&mut self, position: &(impl lib_game_board::Position + Clone), mut alpha: i32, mut beta: i32) -> i32 {

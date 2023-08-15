@@ -59,15 +59,29 @@ I am using [Pascal Pons's test sets](http://blog.gamesolver.org/solving-connect-
 | **L2 R2** | Weak   | Center-first  | `AnticipatingBitboardPosition` | 128ms                 | 339 753                   |
 
 ### Moves ordered by score function *(with Alpha-Beta, Bitboard, Transposition table, Iterative deepening, Loosing moves anticipation)*
-| Test Set | Type   | Move order   | Position representation        | Execution time (mean) | Explored positions (mean) |
-| -------- | ------ | ------------ | ------------------------------ | --------------------- | ------------------------- |
-| L3 R1    | Strong | Score-based  | `BitboardPositionWithOrdering` | 48μs                  | 27 951                    |
-| L2 R1    | Strong | Score-based  | `BitboardPositionWithOrdering` | 394ms                 | 244 402                   |
-| L1 R1    | Strong | Score-based  | `BitboardPositionWithOrdering` | 2.7ms                 | 2 097 468                 |
-| L3 R1    | Weak   | Score-based  | `BitboardPositionWithOrdering` | 31μs                  | 31                        |
-| L2 R1    | Weak   | Score-based  | `BitboardPositionWithOrdering` | 505μs                 | 597                       |
-| L2 R2    | Weak   | Score-based  | `BitboardPositionWithOrdering` | 20ms                  | 24 228                    |
-| L1 R1    | Weak   | Score-based  | `BitboardPositionWithOrdering` | 23ms                  | 27 813                    |
+| Test Set | Type   | Transposition table | Move order   | Position representation        | Execution time (mean) | Explored positions (mean) |
+| -------- | ------ | ------------------- | ------------ | ------------------------------ | --------------------- | ------------------------- |
+| L3 R1    | Strong | Simple              | Score-based  | `BitboardPositionWithOrdering` | 48μs                  | 27 951                    |
+| L2 R1    | Strong | Simple              | Score-based  | `BitboardPositionWithOrdering` | 394μs                 | 244 402                   |
+| L2 R2    | Strong | Simple              | Score-based  | `BitboardPositionWithOrdering` | 39ms                  | 24 739 420                   |
+| L1 R1    | Strong | Simple              | Score-based  | `BitboardPositionWithOrdering` | 2.7ms                 | 2 097 468                 |
+| L3 R1    | Weak   | Simple              | Score-based  | `BitboardPositionWithOrdering` | 31μs                  | 31                        |
+| L2 R1    | Weak   | Simple              | Score-based  | `BitboardPositionWithOrdering` | 505μs                 | 597                       |
+| L2 R2    | Weak   | Simple              | Score-based  | `BitboardPositionWithOrdering` | 20ms                  | 24 228                    |
+| L1 R1    | Weak   | Simple              | Score-based  | `BitboardPositionWithOrdering` | 23ms                  | 27 813                    |
+
+
+### Optimised transposition table *(with Alpha-Beta, Bitboard, Iterative deepening, Loosing moves anticipation, Moves ordered by score function)*
+| Test Set | Type   | Transposition Table | Move order   | Position representation        | Execution time (mean) | Explored positions (mean) |
+| -------- | ------ | ------------------- | ------------ | ------------------------------ | --------------------- | ------------------------- |
+| L3 R1    | Strong | Optimised           | Score-based  | `BitboardPositionWithOrdering` | 57μs                  | 27 951                    |
+| L2 R1    | Strong | Optimised           | Score-based  | `BitboardPositionWithOrdering` | 403μs                 | 244 410                   |
+| L2 R2    | Strong | Optimised           | Score-based  | `BitboardPositionWithOrdering` | 38ms                  | 24 789 139                |
+| L1 R1    | Strong | Optimised           | Score-based  | `BitboardPositionWithOrdering` | 2.7ms                 | 2 095 861                 |
+| L3 R1    | Weak   | Optimised           | Score-based  | `BitboardPositionWithOrdering` | 37μs                  | 31                        |
+| L2 R1    | Weak   | Optimised           | Score-based  | `BitboardPositionWithOrdering` | 509μs                 | 597                       |
+| L2 R2    | Weak   | Optimised           | Score-based  | `BitboardPositionWithOrdering` | 19ms                  | 24 218                    |
+| L1 R1    | Weak   | Optimised           | Score-based  | `BitboardPositionWithOrdering` | 23ms                  | 27 659                    |
 
 
 ## Workspace description
@@ -83,6 +97,7 @@ I am using [Pascal Pons's test sets](http://blog.gamesolver.org/solving-connect-
   - [Iterative deepening](libs/alpha-beta-solver/src/alpha_beta_with_iterative_deepening.rs): uses a dichotomic approach to progressively increase the depth of search. The possible range for the score is narrowed using the Null Window Search method.
   - [Loosing moves anticipation](libs/alpha-beta-solver/src/anticipating_alpha_beta.rs): uses optimized alignement checking from the Bitboard to efficiently predict short-term winning outcome. If the opponent has a winning move, we are forced to play against it. This allows to considerably reduce the search tree.
   - [Score-based move ordering](libs/alpha-beta-solver/src/alpha_beta_with_ordering.rs): each move is given a score using population count. The moves are then sorted using insertion sort, and recursively computed by decreasing score, to reduce the number of explored positions.
+  - [Optimised transposition table](libs/alpha-beta-solver/src/alpha_beta_with_optimised_transposition.rs): uses a bigger Transposition table. The new transposition table is optimised by truncating the keys from 64 to 32 bits, and uses the Chineese remainers theorem to guarantee its correctness.
 
 
 ## Running
@@ -112,7 +127,7 @@ The list of arguments goes as follows:
 $ cargo run benchmark [solver] [weak] [position] [move_ordering] [L] [R]
 ```
 With:
-- `solver`: the solver type. Choose between `min_max`, `alpha_beta`, `alpha_beta_with_transposition`, `alpha_beta_with_iterative_deepening`,  `anticipating_alpha_beta`, and `alpha_beta_with_ordering`.
+- `solver`: the solver type. Choose between `min_max`, `alpha_beta`, `alpha_beta_with_transposition`, `alpha_beta_with_iterative_deepening`,  `anticipating_alpha_beta`, `alpha_beta_with_ordering`, and `alpha_beta_with_optimised_transposition`.
 - `weak`: compute the numbers of move until the end (strong) or only the winner (weak). Choose between `strong` and `weak`.
 - `position`: the representation of the board. Choose between `grid`, `stack` and `bitboard`.
 - `move_ordering`: the order of the moves. Impactful only for Alpha-Beta-based solvers. Choose between `left_to_right`, and `center_first`.

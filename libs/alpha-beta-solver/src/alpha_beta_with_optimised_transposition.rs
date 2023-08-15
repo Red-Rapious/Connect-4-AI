@@ -1,15 +1,16 @@
 use lib_game_board::{Solver, WeakSolver};
-use crate::simple_transposition_table::{SimpleTranspositionTable, TABLE_SIZE};
+use crate::optimised_transposition_table::{OptimisedTranspositionTable, TABLE_SIZE};
+use crate::move_sorter::MoveSorter;
 
-pub struct AnticipatingAlphaBeta {
+pub struct AlphaBetaWithOptimisedTransposition {
     move_order: Vec<usize>,
     explored_positions: usize,
-    transposition_table: SimpleTranspositionTable
+    transposition_table: OptimisedTranspositionTable
 }
 
-impl AnticipatingAlphaBeta {
+impl AlphaBetaWithOptimisedTransposition {
     pub fn new(move_order: Vec<usize>) -> Self {
-        Self { move_order, explored_positions: 0, transposition_table: SimpleTranspositionTable::new(TABLE_SIZE) }
+        Self { move_order, explored_positions: 0, transposition_table: OptimisedTranspositionTable::new(TABLE_SIZE) }
     }
 
     fn solve_range(&mut self, position: &(impl lib_game_board::Position + Clone), mut alpha: i32, mut beta: i32) -> i32 {
@@ -47,21 +48,32 @@ impl AnticipatingAlphaBeta {
             }
         }
 
+        let mut move_sorter = MoveSorter::new(position.width());
         // For each possible move
-        for column in self.move_order.clone().iter() {
+        for column in self.move_order.clone().iter().rev() {
             let column_mask = ((1 << position.height()) - 1) << (column * (position.height() + 1));
-            if next & column_mask != 0 {
-                let mut position2 = position.clone();
-                position2.play(*column);
+            let move_bit = next & column_mask;
+            if move_bit != 0 {
+                move_sorter.add(move_bit, position.move_score(move_bit));
+            }
+        }
+        
 
-                let score = - self.solve_range(&mut position2, -beta, -alpha);
-                
-                if score >= beta {
-                    return score;
-                }
-                if score > alpha {
-                    alpha = score;
-                }
+
+        loop {
+            let next = move_sorter.get_next();
+            if next == 0 { break; }
+
+            let mut position2 = position.clone();
+            position2.play_move(next);
+
+            let score = - self.solve_range(&mut position2, -beta, -alpha);
+            
+            if score >= beta {
+                return score;
+            }
+            if score > alpha {
+                alpha = score;
             }
         }
 
@@ -70,7 +82,7 @@ impl AnticipatingAlphaBeta {
     }
 }
 
-impl Solver for AnticipatingAlphaBeta {
+impl Solver for AlphaBetaWithOptimisedTransposition {
     fn solve(&mut self, position: &(impl lib_game_board::Position + Clone)) -> i32 {
         let mut min = - ((position.width()*position.height()) as i32 - position.nb_moves() as i32)/2;
         let mut max = ((position.width()*position.height() + 1) as i32 - position.nb_moves() as i32)/2;
@@ -101,7 +113,7 @@ impl Solver for AnticipatingAlphaBeta {
     }
 }
 
-impl WeakSolver for AnticipatingAlphaBeta {
+impl WeakSolver for AlphaBetaWithOptimisedTransposition {
     fn weak_solve(&mut self, position: &(impl lib_game_board::Position + Clone)) -> i32 {
         let mut min = -1;
         let mut max = 1;
@@ -133,17 +145,17 @@ impl WeakSolver for AnticipatingAlphaBeta {
 }
 
 #[cfg(test)]
-mod anticipating_alpha_beta_tests {
+mod alpha_beta_with_optimised_transposition_tests {
     use super::*;
-    use lib_game_board::anticipating_bitboard_position::AnticipatingBitboardPosition;
+    use lib_game_board::bitboard_position_with_ordering::BitboardPositionWithOrdering;
     use lib_game_board::sequence_position::SequencePosition;
 
     #[test]
     fn bitboard_correctness() {
-        let mut alpha_beta_with_transposition = AnticipatingAlphaBeta::new((0..7).collect());
+        let mut solver = AlphaBetaWithOptimisedTransposition::new((0..7).collect());
 
-        assert_eq!(alpha_beta_with_transposition.solve(
-        &mut AnticipatingBitboardPosition::from(
+        assert_eq!(solver.solve(
+        &mut BitboardPositionWithOrdering::from(
                     &SequencePosition::from(
                         &"2252576253462244111563365343671351441".to_string()
                     ))),
