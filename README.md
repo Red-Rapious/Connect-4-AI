@@ -86,21 +86,30 @@ I am using [Pascal Pons's test sets](http://blog.gamesolver.org/solving-connect-
 
 
 ## Running
+### Playing against the AI *(WIP)*
+You can try to play against the AI by running the following command:
+```console
+$ cargo run game
+```
+A basic CLI game will then appear, and you will be able to select your moves by entering the column number.
+
+### Tests
 You can check that everything is working by running:
 ```console
 $ cargo test
 ```
 This will execute unit tests for each component of the workspace.
 
-The main program can be executed using:
+### Benchmark
+The benchmark program can be executed using:
 ```console
 $ cargo run [args]
 ```
 where `[args]` is the list of the arguments needed for the benchmark. 
 
-The general arguments list goes as follows:
+The list of arguments goes as follows:
 ```console
-$ cargo run solver weak position move_ordering L R
+$ cargo run benchmark [solver] [weak] [position] [move_ordering] [L] [R]
 ```
 With:
 - `solver`: the solver type. Choose between `min_max`, `alpha_beta`, `alpha_beta_with_transposition`, `alpha_beta_with_iterative_deepening`,  `anticipating_alpha_beta`, and `alpha_beta_with_ordering`.
@@ -112,7 +121,7 @@ With:
 
 For instance:
 ```console
-$ cargo run alpha_beta_with_transposition weak bitboard center_first 3 1
+$ cargo run benchmark alpha_beta_with_transposition weak bitboard center_first 3 1
 ```
 launches a benchmark of the Alpha-Beta solver that uses a transposition table, in Weak mode. Positions will be represented with a Bitboard, and moves will be explored starting from the center columns. The benchmark will execute the dataset `L3 R1`.
 

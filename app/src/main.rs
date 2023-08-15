@@ -42,7 +42,7 @@ fn main() {
         // /target/... benchmark solver weak position move_ordering L R
         if args.len() != 2+6 {
             println!("\n\ncargo run benchmark: invalid arguments list. The argument list should be as follow:");
-            println!("\tcargo run benchmark [solver] [weak] [position] [move_ordering] [length] [rating]");
+            println!("\tcargo run benchmark [solver] [weak] [position] [move_ordering] [L] [R]");
             println!("where:");
             println!("\t- 'solver': the solver type. Choose between 'min_max', 'alpha_beta', 'alpha_beta_with_transposition', 'alpha_beta_with_iterative_deepening', 'anticipating_alpha_beta', 'alpha_beta_with_ordering'.");
             println!("\t- 'weak': compute the numbers of move until the end (strong) or only the winner (weak). Choose between 'strong' and 'weak'.");
