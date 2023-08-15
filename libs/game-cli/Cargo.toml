@@ -1,10 +1,9 @@
 [package]
-name = "connect-4-ai"
+name = "lib-game-cli"
 version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-lib-benchmark = { path = "../libs/benchmark" }
-lib-game-cli = { path = "../libs/game-cli" }
+lib-game-board = { path = "../game-board" }
