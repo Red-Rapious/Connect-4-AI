@@ -25,14 +25,14 @@ pub mod test_set;
 pub mod benchmark;
 
 
-pub fn run_benchmark(solver_string: &str, weak_string: &str, position_string: &str, move_ordering_string: &str, length: usize, rating: usize) {
+pub fn run_benchmark(solver_string: &str, weak_string: &str, position_string: &str, move_ordering_string: &str, length: usize, rating: usize, games_number: Option<usize>) {
     let move_ordering = match move_ordering_string {
         "left_to_right" => (0..7).collect(),
         "center_first" => vec![3, 4, 2, 5, 1, 6, 0],
         _ => { assert!(solver_string == "min_max", "Unknown move ordering."); vec![] }
     };
 
-    let test_sets = vec![TestSet::new(length, rating, &"libs/benchmark", None)];
+    let test_sets = vec![TestSet::new(length, rating, &"libs/benchmark", games_number)];
     let benchmark = Benchmark::new(test_sets);
 
     let mut solver: AllowedSolver = match solver_string {

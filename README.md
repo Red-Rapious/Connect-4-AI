@@ -137,7 +137,7 @@ where `[args]` is the list of the arguments needed for the benchmark.
 
 The list of arguments goes as follows:
 ```console
-$ cargo run benchmark [solver] [weak] [position] [move_ordering] [L] [R]
+$ cargo run benchmark [solver] [weak] [position] [move_ordering] [L] [R] [games_number]
 ```
 With:
 - `solver`: the solver type. Choose between `min_max`, `alpha_beta`, `alpha_beta_with_transposition`, `alpha_beta_with_iterative_deepening`,  `anticipating_alpha_beta`, `alpha_beta_with_ordering`, `alpha_beta_with_optimised_transposition`, and `alpha_beta_with_lower_bound_transposition`.
@@ -146,6 +146,7 @@ With:
 - `move_ordering`: the order of the moves. Impactful only for Alpha-Beta-based solvers. Choose between `left_to_right`, and `center_first`.
 - `L`: the overall state of the game in the test dataset. Choose between 1, 2 and 3, where 3 is the easiest.
 - `R`: the overall difficulty of the game in the test dataset. Choose between 1, 2 and 3, where 3 is the easiest. Some ratings aren't available depending on `L`.
+- `games_number``: the number of games that the solver will be tested on. Let empty to test on all games.
 
 For instance:
 ```console
