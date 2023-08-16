@@ -101,6 +101,8 @@ impl TestSet
         let mut execution_times: Vec<Duration> = Vec::with_capacity(self.games_moves.len());
         let mut explored_positions_nb: Vec<usize> = Vec::with_capacity(self.games_moves.len());
 
+        init_progress_bar(self.games_moves.len());
+        set_progress_bar_action("Testing", Color::LightBlue, Style::Normal);
         let results: Vec<bool> = self.games_moves
             .iter()
             .map(|(position, expected_score)| {
@@ -114,6 +116,7 @@ impl TestSet
                 let now = Instant::now();
                 let solved_score = solver.weak_solve(&mut P::from_seq(position));
                 execution_times.push(now.elapsed());
+                inc_progress_bar();
 
                 let solved_score = 
                     if solved_score == 0 { 0 } 
@@ -132,6 +135,7 @@ impl TestSet
                 }
             })
             .collect();
+        finalize_progress_bar();
 
 
         Statistics::new(results, execution_times, explored_positions_nb)
