@@ -25,6 +25,14 @@ impl BitboardPositionWithOrdering {
         }
     }
 
+    pub fn board(&self) -> u64 {
+        self.board
+    }
+
+    pub fn mask(&self) -> u64 {
+        self.mask
+    }
+
     fn top_mask_col(&self, column: usize) -> u64 {
         (1 << (self.height - 1)) << (column * (self.height + 1))
     }

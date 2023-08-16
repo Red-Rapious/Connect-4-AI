@@ -7,3 +7,4 @@ edition = "2021"
 
 [dependencies]
 lib-game-board = { path = "../game-board" }
+termsize = "*"

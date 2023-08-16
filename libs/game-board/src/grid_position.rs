@@ -1,4 +1,4 @@
-use crate::{*, sequence_position::SequencePosition};
+use crate::{*, sequence_position::SequencePosition, bitboard_position_with_ordering::BitboardPositionWithOrdering};
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct GridPosition {
@@ -205,8 +205,41 @@ impl From<&SequencePosition> for GridPosition {
     }
 }
 
+impl From<&BitboardPositionWithOrdering> for GridPosition {
+    fn from(bitboard_position: &BitboardPositionWithOrdering) -> Self {
+        let width = bitboard_position.width();
+        let height = bitboard_position.height();
+        let player_turn = bitboard_position.player_turn();
+        let nb_moves = bitboard_position.nb_moves();
+
+        // Initialise empty grid
+        let mut grid: Vec<Vec<Cell>> = (0..height)
+            .map(|_| vec![Cell::Empty; width])
+            .collect();
+
+        let mut bit_index = 0;
+        for column in 0..width {
+            for line in 0..height {
+                let occupied = bitboard_position.mask() & (1 << bit_index) != 0;
+                if occupied {
+                    let is_current_player = bitboard_position.board() & (1 << bit_index) != 0;
+                    match is_current_player {
+                        true => grid[line][column] = player_turn,
+                        false => grid[line][column] = player_turn.swap_turn()
+                    };
+                }
+
+                bit_index += 1;
+            }
+            bit_index += 1; // extra bit on top of each column
+        }
+
+        Self { player_turn, width, height, grid, nb_moves }
+    }
+}
+
 #[cfg(test)]
-mod tests {
+mod grid_position_tests {
     use super::*;
 
     mod can_play {
@@ -328,5 +361,40 @@ mod tests {
                 expected_result
             )
         } 
+    }
+
+    mod from_bitboard_position {
+        use super::*;
+
+        #[test]
+        fn bitboard_bottom_left() {
+            let mut bitboard_position = BitboardPositionWithOrdering::new(7, 6);
+            bitboard_position.play(0);
+            bitboard_position.play(0);
+
+            let mut expected_grid_position = GridPosition::new(7, 6);
+            expected_grid_position.play(0);
+            expected_grid_position.play(0);
+
+            let converted_grid_position = GridPosition::from(&bitboard_position);
+
+            assert_eq!(converted_grid_position, expected_grid_position);
+        }
+
+        #[test]
+        fn bitboard_full() {
+            let mut bitboard_position = BitboardPositionWithOrdering::new(7, 6);
+            let mut expected_grid_position = GridPosition::new(7, 6);
+            for c in 0..7 {
+                for _ in 0..6 {
+                    bitboard_position.play(c);
+                    expected_grid_position.play(c);
+                }
+            }
+
+            let converted_grid_position = GridPosition::from(&bitboard_position);
+
+            assert_eq!(converted_grid_position, expected_grid_position);
+        }
     }
 }

@@ -1,36 +1,6 @@
 use lib_benchmark::run_benchmark;
 use lib_game_cli::GameCLI;
 
-fn ask_position() -> usize {
-    let mut column: usize;
-    loop {
-        println!("Choose a column to play (between 1 and 7):");
-        let mut input = String::new();
-        match std::io::stdin().read_line(&mut input) {
-            Ok(_) => (),
-            Err(_) => {
-                println!("Please enter something.");
-                continue
-            }
-        }
-        match input.replace("\n", "").parse() {
-            Ok(value) => column = value,
-            Err(_) => {
-                println!("Please enter a number.");
-                continue
-            }
-        }
-
-        if 1 <= column && column <= 7 { 
-            break; 
-        } else {
-            println!("Please enter a column number that is between 1 and 7.\n");
-        }
-    }
-
-    column - 1 // start indexing the array at 0
-}
-
 fn main() {
     let args: Vec<String> = std::env::args().collect();
     if args.len() < 2 {
@@ -64,25 +34,7 @@ fn main() {
     } else if args[1] == "game" {
 
         let mut game_cli = GameCLI::new(7, 6);
-        println!("CONNECT 4");
-        let mut turn = 0;
-
-        while turn < 42 {
-            loop {
-                let column = match turn % 2 {
-                    0 => { game_cli.display_board(); ask_position() },
-                    1 => 0,
-                    _ => panic!()
-                };
-
-                match game_cli.play(column) {
-                    Ok(()) => break,
-                    Err(()) => println!("You cannot play in the column {}.", column + 1)
-                };
-            }
-
-            turn += 1;
-        }
+        game_cli.run_game();
 
     } else {
         println!("\n\n`cargo run`: invalid argument. Run either `cargo run benchmark ...` or `cargo run game ...`");
