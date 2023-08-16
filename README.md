@@ -83,6 +83,18 @@ I am using [Pascal Pons's test sets](http://blog.gamesolver.org/solving-connect-
 | L2 R2    | Weak   | Optimised           | Score-based  | `BitboardPositionWithOrdering` | 19ms                  | 24 218                    |
 | L1 R1    | Weak   | Optimised           | Score-based  | `BitboardPositionWithOrdering` | 23ms                  | 27 659                    |
 
+### Lower bound transposition table *(with Alpha-Beta, Bitboard, Iterative deepening, Loosing moves anticipation, Moves ordered by score function)*
+| Test Set | Type   | Transposition Table | Move order   | Position representation        | Execution time (mean) | Explored positions (mean) |
+| -------- | ------ | ------------------- | ------------ | ------------------------------ | --------------------- | ------------------------- |
+| L3 R1    | Strong | Lower bound         | Score-based  | `BitboardPositionWithOrdering` | 63μs                  | 26 048                    |
+| L2 R1    | Strong | Lower bound         | Score-based  | `BitboardPositionWithOrdering` | 383μs                 | 214 995                   |
+| L2 R2    | Strong | Lower bound         | Score-based  | `BitboardPositionWithOrdering` | 34ms                  | 20 398 668                |
+| L1 R1    | Strong | Lower bound         | Score-based  | `BitboardPositionWithOrdering` | 2.6ms                 | 1 846 277                 |
+| L3 R1    | Weak   | Lower bound         | Score-based  | `BitboardPositionWithOrdering` | 44μs                  | 29                        |
+| L2 R1    | Weak   | Lower bound         | Score-based  | `BitboardPositionWithOrdering` | 462μs                 | 518                       |
+| L2 R2    | Weak   | Lower bound         | Score-based  | `BitboardPositionWithOrdering` | 18ms                  | 20 588                    |
+| L1 R1    | Weak   | Lower bound         | Score-based  | `BitboardPositionWithOrdering` | 20ms                  | 24 043                    |
+
 
 ## Workspace description
 - [`game-board`](libs/game-board/) defines some basic traits: the `Position` trait, which represents a Connect 4 grid, and the `Solver` trait, that can play the game.
@@ -98,6 +110,7 @@ I am using [Pascal Pons's test sets](http://blog.gamesolver.org/solving-connect-
   - [Loosing moves anticipation](libs/alpha-beta-solver/src/anticipating_alpha_beta.rs): uses optimized alignement checking from the Bitboard to efficiently predict short-term winning outcome. If the opponent has a winning move, we are forced to play against it. This allows to considerably reduce the search tree.
   - [Score-based move ordering](libs/alpha-beta-solver/src/alpha_beta_with_ordering.rs): each move is given a score using population count. The moves are then sorted using insertion sort, and recursively computed by decreasing score, to reduce the number of explored positions.
   - [Optimised transposition table](libs/alpha-beta-solver/src/alpha_beta_with_optimised_transposition.rs): uses a bigger Transposition table. The new transposition table is optimised by truncating the keys from 64 to 32 bits, and uses the Chineese remainers theorem to guarantee its correctness.
+  - [Lower bound transposition table](libs/alpha-beta-solver/src/alpha_beta_with_lower_bound_transposition.rs): instead of storing positions in the transposition table only when it creates a new upper bound, the lower bound transposition table stores both upper and lower bounds. 
 
 
 ## Running
