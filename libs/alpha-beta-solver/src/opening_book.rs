@@ -41,12 +41,12 @@ impl OpeningBook {
         let mut key_size = [0u8; 1];
         reader.read_exact(&mut key_size).unwrap();
         let key_size = key_size[0] as usize;
-        assert!(key_size <= 32); // Keys are stored as u32 in LowerBoundTranspositionTable
+        assert!(key_size <= 32/8); // Keys are stored as u32 in LowerBoundTranspositionTable
 
         let mut value_size = [0u8; 1];
         reader.read_exact(&mut value_size).unwrap();
         let value_size = value_size[0] as usize;
-        assert!(value_size <= 8); // Values are stored as u8 in LowerBoundTranspositionTable
+        assert!(value_size <= 8/8); // Values are stored as u8 in LowerBoundTranspositionTable
 
         let mut log_size = [0u8; 1];
         reader.read_exact(&mut log_size).unwrap();
@@ -73,8 +73,7 @@ impl OpeningBook {
             keys.push(key);
         }
         
-        let mut values = Vec::with_capacity(number_values);
-        for _ in 0..number_values {
+        for i in 0..number_values {
             let mut value = vec![0u8; value_size];
             reader.read_exact(&mut value).unwrap();
 
@@ -88,14 +87,7 @@ impl OpeningBook {
                 }
             };
 
-            values.push(value);
-        }
-
-        for i in 0..number_values {
-            if i == 0 {
-                dbg!(keys[i], values[i]);
-            }
-            self.transposition_table.insert(keys[i], values[i]);
+            self.transposition_table.insert(keys[i], value);
         }
     }
 
@@ -122,7 +114,7 @@ mod opening_book_tests {
         }
 
         #[test]
-        //#[ignore]
+        #[ignore]
         fn load_large() {
             let mut book = OpeningBook::new(7, 6);
             book.load("./opening-books/7x6.book");
