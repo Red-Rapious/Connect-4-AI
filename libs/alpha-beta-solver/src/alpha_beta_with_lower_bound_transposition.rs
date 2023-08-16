@@ -30,7 +30,7 @@ impl AlphaBetaWithLowerBoundTransposition {
 
         let mut min = - ((position.width()*position.height() - 2 - position.nb_moves()) as i32)/2;
         if alpha < min {
-            alpha = min; // there is no need to keep beta above our max possible score.
+            alpha = min; // there is no need to keep alpha below our min possible score.
             if alpha >= beta {
                 return alpha;
             } 
@@ -57,8 +57,7 @@ impl AlphaBetaWithLowerBoundTransposition {
                         return alpha;
                     }
                 }
-              }
-              else { // we have an upper bound
+            } else { // we have an upper bound
                 max = val as i32 + position_min_score - 1;
                 if beta > max {
                     beta = max;
@@ -66,7 +65,7 @@ impl AlphaBetaWithLowerBoundTransposition {
                         return beta;
                     }  
                 }
-              }
+            }
         };
 
         // Sort the moves by score
@@ -91,7 +90,7 @@ impl AlphaBetaWithLowerBoundTransposition {
             let score = - self.solve_range(&mut position2, -beta, -alpha);
             
             if score >= beta {
-                self.transposition_table.insert(position2.key(), (score + position_max_score - 2*position_min_score + 2) as u16);
+                self.transposition_table.insert(position.key(), (score + position_max_score - 2*position_min_score + 2) as u16);
                 return score;
             }
             if score > alpha {
