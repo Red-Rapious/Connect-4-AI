@@ -71,7 +71,7 @@ impl FinalAlphaBeta {
                 if alpha < min {
                     alpha = min;
                     if alpha >= beta {
-                        return (alpha, None);
+                        return (alpha, *self.move_table.get(&(position.key() as u32)).unwrap());
                     }
                 }
             } else { // we have an upper bound
@@ -79,14 +79,14 @@ impl FinalAlphaBeta {
                 if beta > max {
                     beta = max;
                     if alpha >= beta { 
-                        return (beta, None);
+                        return (beta, *self.move_table.get(&(position.key() as u32)).unwrap());
                     }  
                 }
             }
         };
 
         if let Some(val) = self.opening_book.get(position) {
-            return (val as i32 + position_min_score - 1, None);
+            return (val as i32 + position_min_score - 1, None); // TODO: retrieve move from opening book
         }
 
         // Hash Map to retrieve the column from a given move bitboard
@@ -118,7 +118,7 @@ impl FinalAlphaBeta {
             if score >= beta {
                 self.transposition_table.insert(position.key(), (score + position_max_score - 2*position_min_score + 2) as u16);
                 self.move_table.insert(position.key() as u32, Some(*move_to_column_map.get(&next).unwrap()));
-                return (score, None);
+                return (score, Some(*move_to_column_map.get(&next).unwrap()));
             }
             if score > alpha {
                 alpha = score;
@@ -132,6 +132,14 @@ impl FinalAlphaBeta {
     }
 
     pub fn solve(&mut self, position: &(impl lib_game_board::Position + Clone)) -> (i32, usize) {
+        if position.can_win_next() {
+            for column in 0..position.width() {
+                if position.is_winning_move(column) {
+                    return (((position.width()*position.height() + 1 - position.nb_moves()) as i32)/2, column);
+                }
+            }
+        }
+
         let mut min = - ((position.width()*position.height() - position.nb_moves()) as i32)/2;
         let mut max = ((position.width()*position.height() + 1 - position.nb_moves()) as i32)/2;
         let mut best_move = None;
@@ -157,7 +165,7 @@ impl FinalAlphaBeta {
         if let Some(column) = best_move {
             return (min, column);
         } else {
-            println!("best_move is None: a random move was instead replaced.");
+            println!("[WARNING] `best_move` is `None`: a random move was instead replaced.");
             for column in 0..position.width() {
                 if position.can_play(column) {
                     return (min, column);
