@@ -22,7 +22,7 @@ impl GridPosition {
         &self.grid
     }
 
-    /*fn is_align(&self, line: usize, column: usize, incrementer: (i32, i32)) -> Cell {
+    fn is_align(&self, line: usize, column: usize, incrementer: (i32, i32)) -> Cell {
         let (i0, i1) = incrementer;
         if self.grid[line][column] == self.grid[(line as i32 + i0) as usize][(column as i32 + i1) as usize] 
         && self.grid[line][column] == self.grid[(line as i32 + 2*i0) as usize][(column as i32 + 2*i1) as usize]
@@ -32,7 +32,7 @@ impl GridPosition {
         } else {
             Cell::Empty
         }
-    }*/
+    }
 
     /*fn _unplay(&mut self, column: usize) {
         self.nb_moves -= 1;
@@ -45,6 +45,40 @@ impl GridPosition {
             }
         }
     }*/
+
+    pub fn winning(&self) -> Cell {
+        // Horizontal
+        for line in 0..self.height {
+            for column in 0..self.width-3 {
+                let align = self.is_align(line, column, (0, 1));
+                if align != Cell::Empty { return align; }
+            }
+        }
+
+        // Vertical
+        for line in 0..self.height-3 {
+            for column in 0..self.width {
+                let align = self.is_align(line, column, (1, 0));
+                if align != Cell::Empty { return align; }
+            }
+        }
+
+        // Diagonals
+        for line in 0..self.height-3 {
+            for column in 0..self.width-3 {
+                let align = self.is_align(line, column, (1, 1));
+                if align != Cell::Empty { return align; }
+            }
+        }
+        for line in 0..self.height-3 {
+            for column in 3..self.width {
+                let align = self.is_align(line, column, (1, -1));
+                if align != Cell::Empty { return align; }
+            }
+        }
+
+        Cell::Empty
+    }
 }
 
 impl Position for GridPosition {
@@ -80,40 +114,6 @@ impl Position for GridPosition {
         self.nb_moves += 1;
         self.player_turn = self.player_turn.swap_turn();
     }
-
-    /*fn winning(&self) -> Cell {
-        // Horizontal
-        for line in 0..self.height {
-            for column in 0..self.width-3 {
-                let align = self.is_align(line, column, (0, 1));
-                if align != Cell::Empty { return align; }
-            }
-        }
-
-        // Vertical
-        for line in 0..self.height-3 {
-            for column in 0..self.width {
-                let align = self.is_align(line, column, (1, 0));
-                if align != Cell::Empty { return align; }
-            }
-        }
-
-        // Diagonals
-        for line in 0..self.height-3 {
-            for column in 0..self.width-3 {
-                let align = self.is_align(line, column, (1, 1));
-                if align != Cell::Empty { return align; }
-            }
-        }
-        for line in 0..self.height-3 {
-            for column in 3..self.width {
-                let align = self.is_align(line, column, (1, -1));
-                if align != Cell::Empty { return align; }
-            }
-        }
-
-        Cell::Empty
-    }*/
 
     /*fn is_winning_move(&mut self, column: usize, player: Cell) -> bool {
         self.play(column, player);

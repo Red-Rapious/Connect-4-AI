@@ -7,4 +7,5 @@ edition = "2021"
 
 [dependencies]
 lib-game-board = { path = "../game-board" }
+lib-alpha-beta-solver = { path = "../alpha-beta-solver" }
 termsize = "*"

@@ -1,4 +1,5 @@
-use lib_game_board::{bitboard_position_with_ordering::BitboardPositionWithOrdering, grid_position::GridPosition, Position};
+use lib_game_board::{bitboard_position_with_ordering::BitboardPositionWithOrdering, grid_position::GridPosition, Position, sequence_position::SequencePosition, Cell};
+use lib_alpha_beta_solver::final_alpha_beta::FinalAlphaBeta;
 
 pub struct GameCLI {
     position: BitboardPositionWithOrdering
@@ -16,13 +17,29 @@ impl GameCLI {
         println!(r"{}  \___|\___/|_||_||_||_|\___|\__| \__|         |_|   ", Self::left_shift(53));
         println!("\n\n");
 
-        let mut turn = 0;
+        println!("Loading game files...");
+        let mut solver = FinalAlphaBeta::new(7, 6, vec![3, 4, 2, 5, 1, 6, 0]);
+        solver.load_opening_book("libs/alpha-beta-solver/opening-books/7x6_small.book");
 
-        while turn < 42 {
+        self.position = Position::from_seq(
+            &SequencePosition::from(&
+                "37313333717124171162542"
+                .to_string())
+        );
+
+        while self.position.nb_moves() < 42 {
             loop {
-                let column = match turn % 2 {
-                    0 => { self.display_board(); Self::ask_position() },
-                    1 => 0,
+                let column = match self.position.nb_moves() % 2 {
+                    // Human's turn
+                    0 => { self.display_board(); Self::ask_position()}, 
+                    // AI's turn
+                    1 => 
+                    {
+                        let (score, column) = solver.solve(&self.position);
+                        dbg!(score);
+                        //println!("You will loose in {} moves.", 7*6+score-self.position.nb_moves() as i32);
+                        column
+                    },
                     _ => panic!()
                 };
 
@@ -32,7 +49,16 @@ impl GameCLI {
                 };
             }
 
-            turn += 1;
+            let winner = GridPosition::from(&self.position).winning();
+            if winner == Cell::Red {
+                self.display_board();
+                println!("RED PLAYER WINS!");
+                return;
+            } else if winner == Cell::Yellow {
+                self.display_board();
+                println!("YELLOW PLAYER WINS!");
+                return;
+            }
         }
     }
 
@@ -45,18 +71,25 @@ impl GameCLI {
         for line in (0..self.position.height()).rev() {
             print!("{}", left_shift);
             for column in 0..self.position.width() {
-                print!("| {} ",
+                print!("{} {} ",
+                    if column == 0 {
+                        "\x1b[1m|\x1b[0m"
+                    } else {
+                        "|"
+                    },
                     match grid_position.grid()[line][column] {
                         Empty => " ",
-                        Red => "X",
-                        Yellow => "O"
+                        Red => "\x1b[31;1mX\x1b[0m",
+                        Yellow => "\x1b[93;1mO\x1b[0m"
                     }
                 );
             }
-            println!("|");
+            println!("\x1b[1m|\x1b[0m");
             print!("{}", left_shift);
-            for _ in 0..self.position.width()*4+1 {
-                print!("-");
+            if line == 0 {
+                print!("\x1b[1m{}\x1b[0m", "-".repeat(self.position.width()*4+1));
+            } else {
+                print!("{}", "-".repeat(self.position.width()*4+1));
             }
             println!("");
         }
