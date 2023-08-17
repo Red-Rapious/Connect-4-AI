@@ -31,13 +31,17 @@ impl GameCLI {
             loop {
                 let column = match self.position.nb_moves() % 2 {
                     // Human's turn
-                    0 => { self.display_board(); Self::ask_position()}, 
+                    0 => { 
+                        self.display_board(); 
+                        let column = Self::ask_position();
+                        println!("You played in column {}.", column + 1);
+                        column
+                    }, 
                     // AI's turn
                     1 => 
                     {
-                        let (score, column) = solver.solve(&self.position);
-                        dbg!(score);
-                        //println!("You will loose in {} moves.", 7*6+score-self.position.nb_moves() as i32);
+                        let (_score, column) = solver.solve(&self.position);
+                        println!("AI played in column {}.", column + 1);
                         column
                     },
                     _ => panic!()
@@ -52,11 +56,11 @@ impl GameCLI {
             let winner = GridPosition::from(&self.position).winning();
             if winner == Cell::Red {
                 self.display_board();
-                println!("RED PLAYER WINS!");
+                println!("\n\n{}\x1b[31;1mRED PLAYER WINS!\x1b[0m", Self::left_shift(29));
                 return;
             } else if winner == Cell::Yellow {
                 self.display_board();
-                println!("YELLOW PLAYER WINS!");
+                println!("\n\n{}\x1b[93;1m ===\x1b[0m YELLOW PLAYER WINS! \x1b[93;1m=== \x1b[0m", Self::left_shift(29));
                 return;
             }
         }
