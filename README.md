@@ -1,8 +1,69 @@
 # Connect-4-AI
 An artificial intelligence to perfectly solve the game of Connect Four.
 
+![Connect-4 ASCII](assets/connect-4-ASCII.png)
+
 ## About
 My goal is to create a perfect Connect Four bot, capable of predicting the outcome of a game in a reasonable computing time. 
+
+![Grid CLI](assets/grid-cli.png)
+
+## Running
+### Playing against the AI
+You can try to play against the AI by running the following command:
+```console
+$ cargo run game
+```
+A basic CLI game will then appear, and you will be able to select your moves by entering the column number.
+
+### Tests
+You can check that everything is working by running:
+```console
+$ cargo test
+```
+This will execute unit tests for each component of the workspace.
+
+### Benchmark
+The benchmark program can be executed using:
+```console
+$ cargo run [args]
+```
+where `[args]` is the list of the arguments needed for the benchmark. 
+
+The list of arguments goes as follows:
+```console
+$ cargo run benchmark [solver] [weak] [position] [move_ordering] [L] [R] [games_number]
+```
+With:
+- `solver`: the solver type. Choose between `min_max`, `alpha_beta`, `alpha_beta_with_transposition`, `alpha_beta_with_iterative_deepening`,  `anticipating_alpha_beta`, `alpha_beta_with_ordering`, `alpha_beta_with_optimised_transposition`, and `alpha_beta_with_lower_bound_transposition`.
+- `weak`: compute the numbers of move until the end (strong) or only the winner (weak). Choose between `strong` and `weak`.
+- `position`: the representation of the board. Choose between `grid`, `stack` and `bitboard`.
+- `move_ordering`: the order of the moves. Impactful only for Alpha-Beta-based solvers. Choose between `left_to_right`, and `center_first`.
+- `L`: the overall state of the game in the test dataset. Choose between 1, 2 and 3, where 3 is the easiest.
+- `R`: the overall difficulty of the game in the test dataset. Choose between 1, 2 and 3, where 3 is the easiest. Some ratings aren't available depending on `L`.
+- `games_number``: the number of games that the solver will be tested on. Let empty to test on all games.
+
+For instance:
+```console
+$ cargo run benchmark alpha_beta_with_transposition weak bitboard center_first 3 1
+```
+launches a benchmark of the Alpha-Beta solver that uses a transposition table, in Weak mode. Positions will be represented with a Bitboard, and moves will be explored starting from the center columns. The benchmark will execute the dataset `L3 R1`.
+
+## Workspace description
+- [`game-board`](libs/game-board/) defines some basic traits: the `Position` trait, which represents a Connect 4 grid, and the `Solver` trait, that can play the game.
+  - `GridPosition` is a naive implementation of `Position` using a bi-dimensionnal vector
+  - `StackPosition` is a similar implementation, using a list-based approach instead of an array-based one. Performances are extremely close.
+  - `BitboardPosition` is an optimised implementation using two `u64` to represent the board, and bitwise operations to speed up the needed functions. Performances are around 10 times faster than with the naive `GridPosition`.
+- [`benchmark`](libs/benchmark/) is responsible for loading test sets and to execute the tests on a given `Solver`.
+- [`min-max-solver`](libs/min-max-solver/) is the first solver that I implemented, using the Negamax variant of the Min-Max algorithm.
+- [`alpha-beta-solver`](libs/alpha-beta-solver/) contains all variants of the Alpha-Beta algorithm. The different solvers are:
+  - [Default](libs/alpha-beta-solver/src/alpha_beta_solver.rs): vanilla Alpha-Beta.
+  - [Transposition table](libs/alpha-beta-solver/src/alpha_beta_with_transposition_table.rs): uses a Transposition table to save previously explored positions. Increases both memory usage but decreases execution time.
+  - [Iterative deepening](libs/alpha-beta-solver/src/alpha_beta_with_iterative_deepening.rs): uses a dichotomic approach to progressively increase the depth of search. The possible range for the score is narrowed using the Null Window Search method.
+  - [Loosing moves anticipation](libs/alpha-beta-solver/src/anticipating_alpha_beta.rs): uses optimized alignement checking from the Bitboard to efficiently predict short-term winning outcome. If the opponent has a winning move, we are forced to play against it. This allows to considerably reduce the search tree.
+  - [Score-based move ordering](libs/alpha-beta-solver/src/alpha_beta_with_ordering.rs): each move is given a score using population count. The moves are then sorted using insertion sort, and recursively computed by decreasing score, to reduce the number of explored positions.
+  - [Optimised transposition table](libs/alpha-beta-solver/src/alpha_beta_with_optimised_transposition.rs): uses a bigger Transposition table. The new transposition table is optimised by truncating the keys from 64 to 32 bits, and uses the Chineese remainers theorem to guarantee its correctness.
+  - [Lower bound transposition table](libs/alpha-beta-solver/src/alpha_beta_with_lower_bound_transposition.rs): instead of storing positions in the transposition table only when it creates a new upper bound, the lower bound transposition table stores both upper and lower bounds. 
 
 
 ## Results
@@ -95,64 +156,6 @@ I am using [Pascal Pons's test sets](http://blog.gamesolver.org/solving-connect-
 | L2 R2    | Weak   | Lower bound         | Score-based  | `BitboardPositionWithOrdering` | 18ms                  | 20 588                    |
 | L1 R1    | Weak   | Lower bound         | Score-based  | `BitboardPositionWithOrdering` | 20ms                  | 24 043                    |
 
-
-## Workspace description
-- [`game-board`](libs/game-board/) defines some basic traits: the `Position` trait, which represents a Connect 4 grid, and the `Solver` trait, that can play the game.
-  - `GridPosition` is a naive implementation of `Position` using a bi-dimensionnal vector
-  - `StackPosition` is a similar implementation, using a list-based approach instead of an array-based one. Performances are extremely close.
-  - `BitboardPosition` is an optimised implementation using two `u64` to represent the board, and bitwise operations to speed up the needed functions. Performances are around 10 times faster than with the naive `GridPosition`.
-- [`benchmark`](libs/benchmark/) is responsible for loading test sets and to execute the tests on a given `Solver`.
-- [`min-max-solver`](libs/min-max-solver/) is the first solver that I implemented, using the Negamax variant of the Min-Max algorithm.
-- [`alpha-beta-solver`](libs/alpha-beta-solver/) contains all variants of the Alpha-Beta algorithm. The different solvers are:
-  - [Default](libs/alpha-beta-solver/src/alpha_beta_solver.rs): vanilla Alpha-Beta.
-  - [Transposition table](libs/alpha-beta-solver/src/alpha_beta_with_transposition_table.rs): uses a Transposition table to save previously explored positions. Increases both memory usage but decreases execution time.
-  - [Iterative deepening](libs/alpha-beta-solver/src/alpha_beta_with_iterative_deepening.rs): uses a dichotomic approach to progressively increase the depth of search. The possible range for the score is narrowed using the Null Window Search method.
-  - [Loosing moves anticipation](libs/alpha-beta-solver/src/anticipating_alpha_beta.rs): uses optimized alignement checking from the Bitboard to efficiently predict short-term winning outcome. If the opponent has a winning move, we are forced to play against it. This allows to considerably reduce the search tree.
-  - [Score-based move ordering](libs/alpha-beta-solver/src/alpha_beta_with_ordering.rs): each move is given a score using population count. The moves are then sorted using insertion sort, and recursively computed by decreasing score, to reduce the number of explored positions.
-  - [Optimised transposition table](libs/alpha-beta-solver/src/alpha_beta_with_optimised_transposition.rs): uses a bigger Transposition table. The new transposition table is optimised by truncating the keys from 64 to 32 bits, and uses the Chineese remainers theorem to guarantee its correctness.
-  - [Lower bound transposition table](libs/alpha-beta-solver/src/alpha_beta_with_lower_bound_transposition.rs): instead of storing positions in the transposition table only when it creates a new upper bound, the lower bound transposition table stores both upper and lower bounds. 
-
-
-## Running
-### Playing against the AI *(WIP)*
-You can try to play against the AI by running the following command:
-```console
-$ cargo run game
-```
-A basic CLI game will then appear, and you will be able to select your moves by entering the column number.
-
-### Tests
-You can check that everything is working by running:
-```console
-$ cargo test
-```
-This will execute unit tests for each component of the workspace.
-
-### Benchmark
-The benchmark program can be executed using:
-```console
-$ cargo run [args]
-```
-where `[args]` is the list of the arguments needed for the benchmark. 
-
-The list of arguments goes as follows:
-```console
-$ cargo run benchmark [solver] [weak] [position] [move_ordering] [L] [R] [games_number]
-```
-With:
-- `solver`: the solver type. Choose between `min_max`, `alpha_beta`, `alpha_beta_with_transposition`, `alpha_beta_with_iterative_deepening`,  `anticipating_alpha_beta`, `alpha_beta_with_ordering`, `alpha_beta_with_optimised_transposition`, and `alpha_beta_with_lower_bound_transposition`.
-- `weak`: compute the numbers of move until the end (strong) or only the winner (weak). Choose between `strong` and `weak`.
-- `position`: the representation of the board. Choose between `grid`, `stack` and `bitboard`.
-- `move_ordering`: the order of the moves. Impactful only for Alpha-Beta-based solvers. Choose between `left_to_right`, and `center_first`.
-- `L`: the overall state of the game in the test dataset. Choose between 1, 2 and 3, where 3 is the easiest.
-- `R`: the overall difficulty of the game in the test dataset. Choose between 1, 2 and 3, where 3 is the easiest. Some ratings aren't available depending on `L`.
-- `games_number``: the number of games that the solver will be tested on. Let empty to test on all games.
-
-For instance:
-```console
-$ cargo run benchmark alpha_beta_with_transposition weak bitboard center_first 3 1
-```
-launches a benchmark of the Alpha-Beta solver that uses a transposition table, in Weak mode. Positions will be represented with a Bitboard, and moves will be explored starting from the center columns. The benchmark will execute the dataset `L3 R1`.
 
 ## License
 This work is licensed under the [CC-BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/) license.

@@ -115,7 +115,7 @@ impl GameCLI {
     fn ask_position() -> usize {
         let mut column: usize;
         loop {
-            println!("Choose a column to play (between 1 and 7):");
+            println!("\n\nChoose a column to play (between 1 and 7):");
             let mut input = String::new();
             match std::io::stdin().read_line(&mut input) {
                 Ok(_) => (),
